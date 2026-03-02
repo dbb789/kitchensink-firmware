@@ -74,16 +74,6 @@ TEST(StrRef, BeginsWith)
     ASSERT_FALSE(str.beginsWith("est"));
 }
 
-TEST(StrRef, EndsWith)
-{
-    StrRef str("test");
-
-    ASSERT_TRUE(str.endsWith("st"));
-    ASSERT_TRUE(str.endsWith("est"));
-    ASSERT_TRUE(str.endsWith("test"));
-    ASSERT_FALSE(str.endsWith("tes"));
-}
-
 TEST(StrRef, BeginsWithCase)
 {
     StrRef str("Test");
@@ -92,6 +82,31 @@ TEST(StrRef, BeginsWithCase)
     ASSERT_TRUE(str.beginsWithCase("Tes"));
     ASSERT_TRUE(str.beginsWithCase("Test"));
     ASSERT_FALSE(str.beginsWithCase("est"));
+}
+
+
+TEST(StrRef, BeginsWithOverflow)
+{
+    StrRef str("test");
+
+    ASSERT_FALSE(str.beginsWith("test!"));
+}
+
+TEST(StrRef, BeginsWithCaseOverflow)
+{
+    StrRef str("Test");
+
+    ASSERT_FALSE(str.beginsWithCase("Test!"));
+}
+
+TEST(StrRef, EndsWith)
+{
+    StrRef str("test");
+
+    ASSERT_TRUE(str.endsWith("st"));
+    ASSERT_TRUE(str.endsWith("est"));
+    ASSERT_TRUE(str.endsWith("test"));
+    ASSERT_FALSE(str.endsWith("tes"));
 }
 
 TEST(StrRef, EndsWithCase)
@@ -105,6 +120,19 @@ TEST(StrRef, EndsWithCase)
     ASSERT_FALSE(str.endsWithCase("Tes"));
 }
 
+TEST(StrRef, EndsWithOverflow)
+{
+    StrRef str("test");
+
+    ASSERT_FALSE(str.endsWith("!test"));
+}
+
+TEST(StrRef, EndsWithCaseOverflow)
+{
+    StrRef str("Test");
+
+    ASSERT_FALSE(str.endsWithCase("!Test"));
+}
 
 TEST(StrRef, TrimSimple)
 {
