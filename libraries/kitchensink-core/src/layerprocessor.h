@@ -14,12 +14,11 @@ public:
     explicit LayerProcessor(EventStage& next);
 
 public:
+    void setKeySource(KeySource* keySource);
     virtual bool processEvent(const Event& event) override;
     
-public:
-    KeySource* keySource;
-    
 private:
+    KeySource* mKeySource;
     EventStage& mNext;
     
 private:

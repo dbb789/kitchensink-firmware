@@ -26,10 +26,7 @@
 void setup()
 {
     I2CKeyMatrix::setup();
-}
 
-void loop()
-{
     // SerialLogger serialLogger;
 
     // Log::setLogger(&serialLogger);
@@ -91,7 +88,7 @@ void loop()
     KeySource keySource(keyboard,
                         keyboardState.layerStack);
 
-    layerProcessor.keySource = &keySource;
+    layerProcessor.setKeySource(&keySource);
 
     TeensyUsbKeyboard usbKeyboard;
     TeensyLedSource ledSource;
@@ -113,4 +110,9 @@ void loop()
     screenManager.poll();
 
     // Log::clearLogger();
+}
+
+void loop()
+{
+    // ...
 }

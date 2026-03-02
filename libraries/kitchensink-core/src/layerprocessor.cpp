@@ -5,18 +5,26 @@
 #include "event/layerevent.h"
 
 LayerProcessor::LayerProcessor(EventStage& next)
-    : keySource(nullptr)
+    : mKeySource(nullptr)
     , mNext(next)
 { }
+
+void LayerProcessor::setKeySource(KeySource* keySource)
+{
+    mKeySource = keySource;
+}
 
 bool LayerProcessor::processEvent(const Event& event)
 {
     if (event.is<LayerEvent>())
     {
-        auto layerEvent(event.get<LayerEvent>());
-
-        keySource->setLayer(layerEvent.layer,
-                            layerEvent.enable);
+        if (mKeySource)
+        {
+            auto layerEvent(event.get<LayerEvent>());
+            
+            mKeySource->setLayer(layerEvent.layer,
+                                 layerEvent.enable);
+        }
     }
     else
     {
