@@ -9,6 +9,10 @@
 #include "ui/surface.h"
 #include "ui/colors.h"
 
+namespace
+{
+constexpr int kInitialCursorPosition = 1000;
+}
 
 EntryWidget::EntryWidget(TimerManager&   timer,
                          Content* nContent)
@@ -16,7 +20,7 @@ EntryWidget::EntryWidget(TimerManager&   timer,
     , mFlashTimer(timer.createTimer())
     , mFocused(true)
     , mFlash(false)
-    , mCursorPosition(1000)
+    , mCursorPosition(kInitialCursorPosition)
 { }
 
 void EntryWidget::setFocused(bool focused)

@@ -29,7 +29,8 @@ public:
     
 public:
     void poll();
-
+    void pushScreenEvent(const ScreenEvent& screenEvent);
+    
 private:
     bool transient(const ScreenEvent& screenEvent) const;
 
@@ -70,15 +71,13 @@ private:
     void launchInitSecureMacroScreen(const ScreenEvent& sourceEvent);
 
 private:
-    Surface         mSurface;
-    EventManager&   mEventManager;
-    TimerManager&   mTimerManager;
-    KeyboardState&  mKeyboardState;
-    KeyHardware&    mKeyHardware;
-    EntropyPool&    mEntropyPool;
-    MenuDefinitions mMenuDefinitions;
-
-public:
+    Surface                         mSurface;
+    EventManager&                   mEventManager;
+    TimerManager&                   mTimerManager;
+    KeyboardState&                  mKeyboardState;
+    KeyHardware&                    mKeyHardware;
+    EntropyPool&                    mEntropyPool;
+    MenuDefinitions                 mMenuDefinitions;
     CircularBuffer<ScreenEvent, 12> mScreenEventQueue;
 
 private:

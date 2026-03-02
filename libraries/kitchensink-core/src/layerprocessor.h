@@ -6,8 +6,6 @@
 class KeySource;
 class Event;
 
-class Event;
-
 class LayerProcessor : public EventStage
 {
 public:

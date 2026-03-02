@@ -58,7 +58,7 @@ bool OutputSink::processEvent(const Event& event)
         {
             auto screenEvent(event.get<ScreenEvent>());
             
-            mScreenManager.mScreenEventQueue.pushBack(screenEvent);
+            mScreenManager.pushScreenEvent(screenEvent);
         }
         else
         {
@@ -102,6 +102,11 @@ void ScreenManager::poll()
             launchHome();
         }
     }
+}
+
+void ScreenManager::pushScreenEvent(const ScreenEvent& screenEvent)
+{
+    mScreenEventQueue.pushBack(screenEvent);
 }
 
 bool ScreenManager::transient(const ScreenEvent& screenEvent) const
