@@ -97,6 +97,7 @@ template <std::size_t Capacity>
 inline
 constexpr DataRef::DataRef(const std::array<uint8_t, Capacity>& array)
     : mRange(array.begin(), array.end())
+    , mInPlace(0)
 { }
 
 inline
