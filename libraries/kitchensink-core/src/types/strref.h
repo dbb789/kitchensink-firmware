@@ -108,7 +108,14 @@ constexpr const char& StrRef::operator[](std::size_t n) const
 inline
 constexpr std::size_t StrRef::termLen(const char* data)
 {
-    return (data[0] == '\0') ? 0 : (termLen(data + 1) + 1);
+    std::size_t length(0);
+
+    while (data[length] != '\0')
+    {
+        ++length;
+    }
+
+    return length;
 }
 
 inline

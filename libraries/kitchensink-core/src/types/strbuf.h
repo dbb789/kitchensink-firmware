@@ -200,7 +200,15 @@ template <std::size_t Capacity>
 inline
 constexpr std::size_t StrBuf<Capacity>::length(const_iterator data)
 {
-    return (*data == '\0') ? 0 : (1 + length(data + 1));
+    std::size_t length(0);
+
+    while (*data != '\0')
+    {
+        ++length;
+        ++data;
+    }
+
+    return length;
 }
 
 #endif
