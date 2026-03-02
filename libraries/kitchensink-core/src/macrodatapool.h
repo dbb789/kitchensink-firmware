@@ -34,21 +34,24 @@ inline
 MacroDataPool<Size, PoolSize>::MacroDataPool()
     : pool(indexData.begin(), indexData.end(),
            poolData.begin(),  poolData.end())
-{ }
+{
+    clear();
+}
 
 template <std::size_t Size, std::size_t PoolSize>
 inline
 void MacroDataPool<Size, PoolSize>::clear()
 {
-    // TODO: Check that this isn't optimised away.
-    
-    std::fill(indexData.begin(),
-              indexData.end(),
-              Range<Event*>(nullptr, nullptr));
+    // Will not be optimised away as described here:
+    // https://en.cppreference.com/w/cpp/string/byte/memset
 
-    std::fill(poolData.begin(),
-              poolData.end(),
-              Event());
+    std::fill(reinterpret_cast<volatile char*>(indexData.data()),
+              reinterpret_cast<volatile char*>(indexData.data()) + sizeof(indexData),
+              '\0');
+    
+    std::fill(reinterpret_cast<volatile char*>(poolData.data()),
+              reinterpret_cast<volatile char*>(poolData.data()) + sizeof(poolData),
+              '\0');
     
     pool.clear();
 }
