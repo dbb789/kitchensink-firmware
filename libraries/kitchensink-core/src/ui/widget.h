@@ -11,7 +11,7 @@ class WidgetContainer;
 class Widget : public EventStage
 {
 public:
-    Widget() = default;
+    Widget();
     virtual ~Widget() = default;
     
 public:
@@ -38,6 +38,12 @@ private:
     Rectangle        mParentRegion;
 };
 
+
+inline
+Widget::Widget()
+    : mParent(nullptr)
+    , mParentRegion()
+{ }
 
 inline
 bool Widget::processEvent(const Event&)
