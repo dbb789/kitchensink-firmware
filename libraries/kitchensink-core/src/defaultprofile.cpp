@@ -128,9 +128,7 @@ void init(KeyboardState& keyboardState)
     "name=_\n"
     "shortcut=\n"
     "type=2\n"
-    "content=KLShift KMinus\n"
-
-    "[macro 8]\n"; // FIXME!
+    "content=KLShift KMinus\n";
     
     {
         DataRefInStream is(MacroConfig);

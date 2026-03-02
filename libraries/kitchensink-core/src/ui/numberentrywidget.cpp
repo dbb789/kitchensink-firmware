@@ -10,7 +10,8 @@ NumberEntryWidget::NumberContent::NumberContent(int min, int max)
 
 bool NumberEntryWidget::NumberContent::insertChar(char c, int position)
 {
-    if (c >= '0' && c <= '9')
+    if (position >= 0 && position <= static_cast<int>(mText.length()) &&
+        c >= '0' && c <= '9')
     {
         mText.insert(mText.begin() + position, c);
         
@@ -22,9 +23,14 @@ bool NumberEntryWidget::NumberContent::insertChar(char c, int position)
 
 bool NumberEntryWidget::NumberContent::eraseChar(int position)
 {
-    mText.erase(mText.begin() + position - 1);
-    
-    return true;
+    if (position >= 1 && position <= static_cast<int>(mText.length()))
+    {
+        mText.erase(mText.begin() + position - 1);
+        
+        return true;
+    }
+
+    return false;
 }
 
 StrRef NumberEntryWidget::NumberContent::textContent()
