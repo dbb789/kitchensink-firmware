@@ -46,13 +46,3 @@ TEST(StrInStream, Simple)
         ASSERT_FALSE(sis.readLine(str));
     }
 }
-
-
-
-
-
-
-
-
-
-

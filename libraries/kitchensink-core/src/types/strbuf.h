@@ -71,6 +71,13 @@ template <std::size_t Capacity>
 inline
 StrBuf<Capacity>& StrBuf<Capacity>::insert(iterator it, char c)
 {
+    // Inserting into a full buffer is an error by the caller which we'll
+    // dismiss as a no-op and ignore.
+    if (length() >= capacity())
+    {
+        return *this;
+    }
+    
     auto endIt(end());
     
     std::move_backward(it, endIt + 1, endIt + 2);
@@ -102,10 +109,10 @@ void StrBuf<Capacity>::clearSecure()
 {
     // Will not be optimised away as described here:
     // https://en.cppreference.com/w/cpp/string/byte/memset
-    
+    // Also note that we're clearing the full buffer here.
     std::fill(reinterpret_cast<volatile char*>(begin()),
-              reinterpret_cast<volatile char*>(end()),
-              '\0');   
+              reinterpret_cast<volatile char*>(begin()) + sizeof(mData),
+              '\0');
 }
 
 template <std::size_t Capacity>
