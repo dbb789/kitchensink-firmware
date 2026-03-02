@@ -179,9 +179,15 @@ void HStackWidget::switchFocus(HStackWidget::iterator next)
 
 int HStackWidget::renderOffset() const
 {
+    std::size_t itemCount(std::distance(mItems.begin(), mItems.end()));
+    
+    if (itemCount <= 1)
+    {
+        return 0;
+    }
+    
     auto size(widgetSize());
-
     auto offsetMax(std::max(size.height, mContentHeight) - size.height);
     
-    return ((offsetMax * std::distance(mItems.begin(), mFocused)) / (std::distance(mItems.begin(), mItems.end()) - 1));
+    return ((offsetMax * std::distance(mItems.begin(), mFocused)) / (itemCount - 1));
 }

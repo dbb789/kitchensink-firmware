@@ -110,9 +110,11 @@ void MenuWidget::render(const RasterLine& rasterLine, int row)
     int offsetMax(menuHeight - Font::kHeight);
 
     // And now we subtract by a range of 0 to offsetMax inclusive based on the
-    // currently-selected menu item.
-    offset -= ((mSelectedIndex * offsetMax) / (itemCount - 1));
-
+    // currently-selected menu item if we've got more than one item.
+    if (itemCount > 1)
+    {
+        offset -= ((mSelectedIndex * offsetMax) / (itemCount - 1));
+    }
 
     row += offset;
     
