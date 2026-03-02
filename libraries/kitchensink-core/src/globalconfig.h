@@ -20,8 +20,8 @@ public:
     HomeLedSet homeLedSet;
 
 private:
-    GlobalConfig(const GlobalConfig&);
-    GlobalConfig& operator=(const GlobalConfig&);
+    GlobalConfig(const GlobalConfig&) = delete;
+    GlobalConfig& operator=(const GlobalConfig&) = delete;
 };
 
 #endif

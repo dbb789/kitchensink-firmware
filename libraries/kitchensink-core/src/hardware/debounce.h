@@ -41,12 +41,12 @@ constexpr Debounce<KeyMask>::Debounce()
 
 template <typename KeyMask>
 inline
-bool Debounce<KeyMask>::process(uint32_t        timeMs,
-                                 const KeyMask& next)
+bool Debounce<KeyMask>::process(uint32_t       timeMs,
+                                const KeyMask& next)
 {
     mCurrent &= next;
     
-    if (timeMs >= (mLastMs + kLatencyMs))
+    if ((timeMs - mLastMs) >= kLatencyMs)
     {
         delta = state;
         delta ^= mCurrent;

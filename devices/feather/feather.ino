@@ -72,7 +72,7 @@ void loop()
     KeySource keySource(keyboard,
                         keyboardState.layerStack);
 
-    layerProcessor.keySource = &keySource;
+    layerProcessor.setKeySource(&keySource);
 
     EventManager eventManager(keySource,
                               multiKeyProcessor,

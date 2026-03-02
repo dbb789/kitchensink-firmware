@@ -100,7 +100,7 @@ void loop()
     KeySource keySource(keyboard,
                         keyboardState.layerStack);
 
-    layerProcessor.keySource = &keySource;
+    layerProcessor.setKeySource(&keySource);
     
     CompositeEventSource<2> eventSource({ &keySource, &timerManager });
     

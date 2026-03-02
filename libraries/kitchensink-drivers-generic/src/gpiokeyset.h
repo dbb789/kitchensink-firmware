@@ -28,8 +28,8 @@ private:
     Range<const_iterator> mPins;
 
 private:
-    GPIOKeySet(const GPIOKeySet&);
-    GPIOKeySet& operator=(const GPIOKeySet&);
+    GPIOKeySet(const GPIOKeySet&) = delete;
+    GPIOKeySet& operator=(const GPIOKeySet&) = delete;
 };
 
 
