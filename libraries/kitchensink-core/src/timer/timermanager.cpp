@@ -100,33 +100,29 @@ void TimerManager::cancel(const Timer& timer)
 {
     auto& timerEntry(mTimerMap[timer.mTickId]);
 
-    if (timerEntry.currentMs != 0)
+    // The timestamp of the timer isn't *absolutely* guaranteed to be
+    // unique, but it usually will be - so we can binary search the matching
+    // range and then linear search for what is usually going to be a range
+    // length of 1.
+    
+    Range<TimerQueue::iterator> range(
+        std::equal_range(mTimerQueue.begin(),
+                         mTimerQueue.end(),
+                         timerEntry.currentMs));
+    
+    for (auto it(range.begin()); it != range.end(); ++it)
     {
-        // The timestamp of the timer isn't *absolutely* guaranteed to be
-        // unique, but it usually will be - so we can binary search the matching
-        // range and then linear search for what is usually going to be a range
-        // length of 1.
-        
-        Range<TimerQueue::iterator> range(
-            std::equal_range(mTimerQueue.begin(),
-                             mTimerQueue.end(),
-                             timerEntry.currentMs));
-        
-        for (auto it(range.begin()); it != range.end(); ++it)
+        // Two identical tickIds shouldn't ever be in the queue, let alone in
+        // the same place, so we can break out early as soon as we find and
+        // erase the target timer.
+        if (it->value == timer.mTickId)
         {
-            // Two identical tickIds shouldn't ever be in the queue, let alone in
-            // the same place, so we can break out early as soon as we find and
-            // erase the target timer.
-            if (it->value == timer.mTickId)
-            {
-                mTimerQueue.erase(it);
-                break;
-            }
+            mTimerQueue.erase(it);
+            break;
         }
-        
     }
 
-    timerEntry.currentMs     = 0;
+    timerEntry.currentMs = 0;
     timerEntry.repeatDelayMs = 0;
 }
 
