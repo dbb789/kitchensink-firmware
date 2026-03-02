@@ -112,7 +112,7 @@ template <typename T, std::size_t Capacity>
 inline
 const T& CircularBuffer<T, Capacity>::peekBack() const
 {
-    return mData[mEnd];
+    return mData[(mEnd + Capacity - 1) % Capacity];
 }
 
 template <typename T, std::size_t Capacity>
@@ -131,12 +131,10 @@ template <typename T, std::size_t Capacity>
 inline
 T CircularBuffer<T, Capacity>::popBack()
 {
-    auto value(mData[mEnd]);
-
-    mEnd = (mEnd - 1) % Capacity;
+    mEnd = (mEnd + Capacity - 1) % Capacity;
     mFull = false;
     
-    return value;
+    return mData[mEnd];
 }
 
 template <typename T, std::size_t Capacity>

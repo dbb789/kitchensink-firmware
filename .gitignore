@@ -4,3 +4,4 @@
 *.hex
 doxygen/*
 .dir-locals.el
+libraries/kitchensink-core/tests/tests
