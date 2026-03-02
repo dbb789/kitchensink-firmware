@@ -228,24 +228,25 @@ void deserialize(const StrRef& eventStr, Event& event)
 
     case 'M':
     {
-        auto type(MacroEvent::Type::kDefault);
-        int index(0);
-
-        switch (eventStr[1])
+        if (eventStr.length() > 2)
         {
-        case 'S':
-            type = MacroEvent::Type::kSecure;
-            break;
+            auto type(MacroEvent::Type::kDefault);
+            int index(0);
 
-        case 'D':
-        default:
-            type = MacroEvent::Type::kDefault;
-            break;
-        }
-        
-        if (StrUtil::parseUInt(eventStr.substr(2), index))
-        {
-            event = MacroEvent::create(type, index);
+            switch (eventStr[1]) {
+            case 'S':
+                type = MacroEvent::Type::kSecure;
+                break;
+
+            case 'D':
+            default:
+                type = MacroEvent::Type::kDefault;
+                break;
+            }
+
+            if (StrUtil::parseUInt(eventStr.substr(2), index)) {
+                event = MacroEvent::create(type, index);
+            }
         }
         
         break;
