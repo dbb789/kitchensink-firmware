@@ -4,7 +4,6 @@
 
 #include <cstdio>
 #include <cstring>
-#include <string.h>
 
 void StrOutStream::reset() const
 {
@@ -14,13 +13,10 @@ void StrOutStream::reset() const
 const StrOutStream& StrOutStream::appendStr(const StrRef& str) const
 {
     auto currentLength(strlen(mData));
-    auto len(std::min(str.length() + 1, mDataSize - currentLength));
-    
-    strncpy(mData + currentLength,
-            str.begin(),
-            len);
-    
-    *(mData + currentLength + len) = '\0';
+
+    snprintf(mData + currentLength,
+             mDataSize - currentLength,
+             "%.*s", static_cast<int>(str.length()), str.begin());
     
     return *this;
 }

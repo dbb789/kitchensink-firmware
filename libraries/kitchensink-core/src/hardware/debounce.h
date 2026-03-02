@@ -33,7 +33,10 @@ private:
 template <typename KeyMask>
 inline
 constexpr Debounce<KeyMask>::Debounce()
-    : mLastMs(0)
+    : state()
+    , delta()
+    , mLastMs(0)
+    , mCurrent()
 { }
 
 template <typename KeyMask>
