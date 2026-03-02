@@ -27,6 +27,11 @@ bool StrRef::beginsWith(const StrRef& str) const
 
 bool StrRef::endsWith(const StrRef& str) const
 {
+    if (str.length() > length())
+    {
+        return false;
+    }
+    
     return substr(length() - str.length()) == str;
 }
 
@@ -37,6 +42,11 @@ bool StrRef::beginsWithCase(const StrRef& str) const
 
 bool StrRef::endsWithCase(const StrRef& str) const
 {
+    if (str.length() > length())
+    {
+        return false;
+    }
+    
     return substr(length() - str.length()).equalsCase(str);
 }
 
@@ -56,7 +66,7 @@ StrRef StrRef::trim() const
     {
         --trimEnd;
 
-        if (!(*trimEnd == ' ' || *trimBegin == '\t'))
+        if (!(*trimEnd == ' ' || *trimEnd == '\t'))
         {
             ++trimEnd;
             break;
