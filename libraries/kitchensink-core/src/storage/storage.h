@@ -20,7 +20,7 @@ public:
     class IStream : public InStream
     {
     private:
-        explicit IStream(File file);
+        explicit IStream(File32 file);
 
     public:
         ~IStream();
@@ -29,7 +29,7 @@ public:
         virtual std::size_t read(OutStream& os, std::size_t len) override;
 
     private:
-        File mFileHandle;
+        File32 mFileHandle;
 
     private:
         friend class Storage;
@@ -39,7 +39,7 @@ public:
     class OStream : public OutStream
     {
     private:
-        explicit OStream(File file);
+        explicit OStream(File32 file);
 
     public:
         virtual ~OStream();
@@ -49,7 +49,7 @@ public:
         void write(char c);
 
     private:
-        File mFileHandle;
+        File32 mFileHandle;
 
     private:
         friend class Storage;
@@ -80,7 +80,7 @@ public:
     int fatType() const;
     
 private:
-    mutable SdFat mSdFat;
+    mutable SdFat32 mSdFat;
 };
 
 #endif

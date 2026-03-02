@@ -1,5 +1,3 @@
 #!/bin/bash
 
-foo=${ARDUINO_PATH?"Need to set ARDUINO_PATH"}
-
-${ARDUINO_PATH}/arduino-cli compile -b teensy:avr:teensy31:usb=hid,speed=48,opt=oslto,keys=en-us --libraries ../../libraries --warnings all $@ teensy3-prototype.ino && ${ARDUINO_PATH}/hardware/tools/teensy_reboot
+arduino-cli compile -b teensy:avr:teensy31:usb=hid,speed=48,opt=oslto,keys=en-us --libraries ../../libraries --warnings all $@ teensy3-prototype.ino && arduino-cli upload -b teensy:avr:teensy31 -p usb7/7-1/7-1.1

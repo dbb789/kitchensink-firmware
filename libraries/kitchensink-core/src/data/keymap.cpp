@@ -1,5 +1,6 @@
 #include "keymap.h"
 
+#include <cstddef>
 #include <array>
 
 namespace KeyMap

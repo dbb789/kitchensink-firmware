@@ -77,7 +77,7 @@ Storage::OStream Storage::write(Region region)
 }
 
 
-Storage::IStream::IStream(File fileHandle)
+Storage::IStream::IStream(File32 fileHandle)
     : mFileHandle(fileHandle)
 { }
 
@@ -100,7 +100,7 @@ std::size_t Storage::IStream::read(OutStream& os, std::size_t len)
     return count;
 }
 
-Storage::OStream::OStream(File fileHandle)
+Storage::OStream::OStream(File32 fileHandle)
     : mFileHandle(fileHandle)
 { }
 

@@ -4,6 +4,7 @@
 #include "hardware/keyhardwareevent.h"
 #include "hardware/keyhardwareeventhandler.h"
 
+#include <cstdint>
 #include <array>
 
 template <typename KeyMask>
