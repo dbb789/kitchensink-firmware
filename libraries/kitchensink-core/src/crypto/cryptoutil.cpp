@@ -4,6 +4,7 @@
 #include "types/strbuf.h"
 #include "config.h"
 
+#include <cassert>
 #include <mbedTLS_AES.h>
 #include <mbedTLS_SHA256.h>
 #include <mbedTLS_MD.h>
@@ -75,13 +76,20 @@ Crypto::IV encrypt(const Crypto::Key& key,
     mbedtls_aes_context ctx;
     
     mbedtls_aes_init(&ctx);
-    mbedtls_aes_setkey_enc(&ctx, key.begin(), 256);
-    mbedtls_aes_crypt_cbc(&ctx,
-                          MBEDTLS_AES_ENCRYPT,
-                          size,
-                          nextIv.begin(),
-                          source,
-                          dest);
+    
+    int encRc = mbedtls_aes_setkey_enc(&ctx, key.begin(), 256);
+
+    assert(encRc == 0);
+    
+    int cbcRc = mbedtls_aes_crypt_cbc(&ctx,
+                                      MBEDTLS_AES_ENCRYPT,
+                                      size,
+                                      nextIv.begin(),
+                                      source,
+                                      dest);
+
+    assert(cbcRc == 0);
+    
     mbedtls_aes_free(&ctx);
 
     return nextIv;
@@ -97,13 +105,20 @@ Crypto::IV decrypt(const Crypto::Key& key,
     mbedtls_aes_context ctx;
     
     mbedtls_aes_init(&ctx);
-    mbedtls_aes_setkey_dec(&ctx, key.begin(), 256);
-    mbedtls_aes_crypt_cbc(&ctx,
-                          MBEDTLS_AES_DECRYPT,
-                          size,
-                          nextIv.begin(),
-                          source,
-                          dest);
+
+    int decRc = mbedtls_aes_setkey_dec(&ctx, key.begin(), 256);
+
+    assert(decRc == 0);
+    
+    int cbcRc = mbedtls_aes_crypt_cbc(&ctx,
+                                      MBEDTLS_AES_DECRYPT,
+                                      size,
+                                      nextIv.begin(),
+                                      source,
+                                      dest);
+
+    assert(cbcRc == 0);
+    
     mbedtls_aes_free(&ctx);
 
     return nextIv;
