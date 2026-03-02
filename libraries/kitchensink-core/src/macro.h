@@ -23,7 +23,7 @@ public:
         typedef ArrayPool<Event>::const_iterator const_iterator;
 
     private:
-        Content() = default;
+        Content();
         Content(ArrayPool<Event>* eventPool,
                 std::size_t       index);
         
@@ -43,7 +43,10 @@ public:
     };
     
 public:
-    Macro() = default;
+    // NOTE: Default constructor is required for default initialisation with
+    // an inplace std::array but calling into the object before reassignment
+    // is undefined.
+    Macro();
     Macro(ArrayPool<Event>* eventPool,
           std::size_t       index);
 
@@ -54,6 +57,12 @@ public:
     Content                           content;
 };
 
+
+inline
+Macro::Content::Content()
+    : mEventPool(nullptr)
+    , mIndex(0)
+{ }
 
 inline
 Macro::Content::Content(ArrayPool<Event>* eventPool,
@@ -80,6 +89,13 @@ void Macro::Content::assign(Macro::Content::const_iterator begin,
 {
     mEventPool->insert(mIndex, begin, end);
 }
+
+
+inline
+Macro::Macro()
+    : type(Type::kSync)
+    , content()
+{ }
 
 inline
 Macro::Macro(ArrayPool<Event>* dataPool,
