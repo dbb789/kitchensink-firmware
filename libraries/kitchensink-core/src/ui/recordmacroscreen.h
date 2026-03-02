@@ -24,7 +24,6 @@ public:
     
 private:
     Macro&        mMacro;
-    int           mMacroId;
     EventRecorder mRecorder;
     LabelWidget   mLabelWidget;
     Timer         mFlashTimer;
