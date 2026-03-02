@@ -4,18 +4,28 @@
 
 bool PasswordEntryWidget::PasswordContent::insertChar(char c, int position)
 {
-    mText.insert(mText.begin() + position, c);
-    updateMask();
-    
-    return true;
+    if (position >= 0 && position <= static_cast<int>(mText.length()))
+    {
+        mText.insert(mText.begin() + position, c);
+        updateMask();
+        
+        return true;
+    }
+
+    return false;
 }
 
 bool PasswordEntryWidget::PasswordContent::eraseChar(int position)
 {
-    mText.erase(mText.begin() + position - 1);
-    updateMask();
-    
-    return true;
+    if (position >= 1 && position <= static_cast<int>(mText.length()))
+    {
+        mText.erase(mText.begin() + position - 1);
+        updateMask();
+        
+        return true;
+    }
+
+    return false;
 }
 
 StrRef PasswordEntryWidget::PasswordContent::textContent()

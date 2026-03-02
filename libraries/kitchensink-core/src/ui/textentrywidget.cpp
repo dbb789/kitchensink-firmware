@@ -2,16 +2,26 @@
 
 bool TextEntryWidget::TextContent::insertChar(char c, int position)
 {
-    mText.insert(mText.begin() + position, c);
+    if (position >= 0 && position <= static_cast<int>(mText.length()))
+    {
+        mText.insert(mText.begin() + position, c);
+
+        return true;
+    }
     
-    return true;
+    return false;
 }
 
 bool TextEntryWidget::TextContent::eraseChar(int position)
 {
-    mText.erase(mText.begin() + position - 1);
+    if (position >= 1 && position <= static_cast<int>(mText.length()))
+    {
+        mText.erase(mText.begin() + position - 1);
 
-    return true;
+        return true;
+    }
+
+    return false;
 }
 
 StrRef TextEntryWidget::TextContent::textContent()
