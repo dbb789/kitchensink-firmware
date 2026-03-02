@@ -12,7 +12,7 @@ CryptoOutStream::CryptoOutStream(OutStream&         outStream,
     : mOutStream(outStream)
     , mPassword(password)
     , mIv(iv)
-    , mDataIv(iv)
+    , mDataIv(dataIv)
     , mDataKey(dataKey)
     , mData()
     , mDataOut(mData)
