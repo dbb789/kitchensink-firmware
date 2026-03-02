@@ -15,7 +15,7 @@ class MultiKeyProcessor : public EventStage
 public:
     MultiKeyProcessor(MultiKeySet&  multiSet,
                       GlobalConfig& globalConfig,
-                      TimerManager&        timer,
+                      TimerManager& timer,
                       EventStage&   next);
 
 public:
@@ -24,22 +24,20 @@ public:
 private:
     MultiKeySet&  mMultiKeySet;
     GlobalConfig& mGlobalConfig;
-    Timer mReleaseTimer;
-    std::size_t   mLast;
-    uint8_t       mTaps;
+    Timer         mReleaseTimer;
+    int           mLast;
     EventStage&   mNext;
 };
 
 inline
 MultiKeyProcessor::MultiKeyProcessor(MultiKeySet&  multiSet,
                                      GlobalConfig& globalConfig,
-                                     TimerManager&        timer,
+                                     TimerManager& timer,
                                      EventStage&   next)
     : mMultiKeySet(multiSet)
     , mGlobalConfig(globalConfig)
     , mReleaseTimer(timer.createTimer())
-    , mLast(0)
-    , mTaps(0)
+    , mLast(-1)
     , mNext(next)
 { }
 

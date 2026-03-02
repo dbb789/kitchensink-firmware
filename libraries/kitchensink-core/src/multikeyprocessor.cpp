@@ -8,7 +8,10 @@ bool MultiKeyProcessor::processEvent(const Event& event)
 {
     if (mReleaseTimer.matches(event))
     {
-        mMultiKeySet[mLast].trigger(mNext);
+        if (mLast >= 0)
+        {
+            mMultiKeySet[mLast].trigger(mNext);
+        }
     }
     else if (event.is<MultiEvent>())
     {
@@ -27,17 +30,21 @@ bool MultiKeyProcessor::processEvent(const Event& event)
                 mMultiKeySet[multiId].release(mNext);
             }
             
-            if (multiId != mLast)
+            if (multiId != mLast && mLast >= 0)
             {
                 mMultiKeySet[mLast].trigger(mNext);
             }
             
-            mLast = multiId;
+            mLast = static_cast<int>(multiId);
         }
     }
     else
     {
-        mMultiKeySet[mLast].trigger(mNext);
+        if (mLast >= 0)
+        {
+            mMultiKeySet[mLast].trigger(mNext);
+        }
+        
         mNext.processEvent(event);   
     }
 
