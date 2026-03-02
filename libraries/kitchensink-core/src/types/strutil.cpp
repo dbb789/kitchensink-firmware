@@ -2,6 +2,7 @@
 
 #include "types/range.h"
 
+#include <limits>
 #include <algorithm>
 
 namespace StrUtil
@@ -11,7 +12,7 @@ namespace
 {
 
 // Regular std::pow() seems to be pulling in an extra 5KB.
-int smPow(int n, int p)
+unsigned int smPow(int n, int p)
 {
     int value(1);
     
@@ -26,7 +27,7 @@ int smPow(int n, int p)
 }
 
 bool parseUInt(const StrRef& input,
-               int&          output)
+               unsigned int& output)
 {
     if (input.empty())
     {
@@ -42,7 +43,7 @@ bool parseUInt(const StrRef& input,
     {
         if (c >= '0' && c <= '9')
         {
-            output += static_cast<int>(c - '0') * smPow(10, p++);
+            output += static_cast<unsigned int>(c - '0') * smPow(10, p++);
         }
         else
         {
@@ -51,6 +52,21 @@ bool parseUInt(const StrRef& input,
     }
 
     return true;
+}
+
+bool parseUInt(const StrRef& input,
+               int& output)
+{
+    unsigned int unsignedOutput(0);
+    
+    if (parseUInt(input, unsignedOutput) &&
+        unsignedOutput <= static_cast<unsigned int>(std::numeric_limits<int>::max()))
+    {
+        output = static_cast<int>(unsignedOutput);
+        return true;
+    }
+    
+    return false;
 }
 
 StrRef nextToken(const StrRef& input,

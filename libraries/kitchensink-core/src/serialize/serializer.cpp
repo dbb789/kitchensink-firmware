@@ -56,7 +56,7 @@ void Serializer<GlobalConfig>::serialize(const GlobalConfig& globalConfig, OutSt
     }
 }
 
-bool Serializer<GlobalConfig>::deserialize(InStream& is, GlobalConfig& globalConfig)
+void Serializer<GlobalConfig>::deserialize(InStream& is, GlobalConfig& globalConfig)
 {
     IniFormat::IStream ini(is);
 
@@ -66,13 +66,14 @@ bool Serializer<GlobalConfig>::deserialize(InStream& is, GlobalConfig& globalCon
 
     while (ini.nextSection(sectionName))
     {
-        int homeLedId;
+        unsigned int homeLedId;
         StrRef typeStr;
         StrRef numStr;
 
         if (StrUtil::cutTrim(sectionName, typeStr, ' ', numStr) &&
             typeStr == "home" &&
-            StrUtil::parseUInt(numStr, homeLedId))
+            StrUtil::parseUInt(numStr, homeLedId) &&
+            homeLedId < homeLedSet.size())
         {
             auto& homeLed(homeLedSet[homeLedId]);
 
@@ -131,8 +132,6 @@ bool Serializer<GlobalConfig>::deserialize(InStream& is, GlobalConfig& globalCon
             }
         }
     }
-    
-    return true;
 }
 
 void Serializer<MacroSet>::serialize(const MacroSet& macroSet, OutStream& os)
@@ -184,7 +183,7 @@ void Serializer<MacroSet>::serialize(const MacroSet& macroSet, OutStream& os)
     }    
 }
 
-bool Serializer<MacroSet>::deserialize(InStream& is, MacroSet& macroSet)
+void Serializer<MacroSet>::deserialize(InStream& is, MacroSet& macroSet)
 {
     IniFormat::IStream ini(is);
     
@@ -192,13 +191,14 @@ bool Serializer<MacroSet>::deserialize(InStream& is, MacroSet& macroSet)
 
     while (ini.nextSection(sectionName))
     {
-        int macroId;
+        unsigned int macroId;
         StrRef typeStr;
         StrRef numStr;
 
         if (StrUtil::cutTrim(sectionName, typeStr, ' ', numStr) &&
             typeStr == "macro" &&
-            StrUtil::parseUInt(numStr, macroId))
+            StrUtil::parseUInt(numStr, macroId) &&
+            macroId < macroSet.size())
         {
             auto& macro(macroSet[macroId]);
             
@@ -248,8 +248,6 @@ bool Serializer<MacroSet>::deserialize(InStream& is, MacroSet& macroSet)
             }
         }
     }
-    
-    return false;
 }
 
 void Serializer<SecureMacroSet>::serialize(const SecureMacroSet& macroSet, OutStream& os)
@@ -294,7 +292,7 @@ void Serializer<SecureMacroSet>::serialize(const SecureMacroSet& macroSet, OutSt
     }    
 }
 
-bool Serializer<SecureMacroSet>::deserialize(InStream& is, SecureMacroSet& macroSet)
+void Serializer<SecureMacroSet>::deserialize(InStream& is, SecureMacroSet& macroSet)
 {
     IniFormat::IStream ini(is);
     
@@ -302,13 +300,14 @@ bool Serializer<SecureMacroSet>::deserialize(InStream& is, SecureMacroSet& macro
 
     while (ini.nextSection(sectionName))
     {
-        int macroId;
+        unsigned int macroId;
         StrRef typeStr;
         StrRef numStr;
 
         if (StrUtil::cutTrim(sectionName, typeStr, ' ', numStr) &&
             typeStr == "macro" &&
-            StrUtil::parseUInt(numStr, macroId))
+            StrUtil::parseUInt(numStr, macroId) &&
+            macroId < macroSet.size())
         {
             auto& macro(macroSet[macroId]);
             
@@ -358,8 +357,6 @@ bool Serializer<SecureMacroSet>::deserialize(InStream& is, SecureMacroSet& macro
             }
         }
     }
-    
-    return false;
 }
 
 void Serializer<LayerStack>::serialize(const LayerStack& layerStack, OutStream& os)
@@ -400,7 +397,7 @@ void Serializer<LayerStack>::serialize(const LayerStack& layerStack, OutStream& 
     }
 }
 
-bool Serializer<LayerStack>::deserialize(InStream& is, LayerStack& layerStack)
+void Serializer<LayerStack>::deserialize(InStream& is, LayerStack& layerStack)
 {
     IniFormat::IStream ini(is);
 
@@ -408,13 +405,14 @@ bool Serializer<LayerStack>::deserialize(InStream& is, LayerStack& layerStack)
 
     while (ini.nextSection(sectionName))
     {
-        int layerId;
+        unsigned int layerId;
         StrRef typeStr;
         StrRef numStr;
 
         if (StrUtil::cutTrim(sectionName, typeStr, ' ', numStr) &&
             typeStr == "layer" &&
-            StrUtil::parseUInt(numStr, layerId))
+            StrUtil::parseUInt(numStr, layerId) &&
+            layerId < layerStack.size())
         {
             auto& layer(layerStack[layerId]);
 
@@ -448,8 +446,6 @@ bool Serializer<LayerStack>::deserialize(InStream& is, LayerStack& layerStack)
             }
         }
     }
-
-    return true;
 }
 
 void Serializer<MultiKeySet>::serialize(const MultiKeySet& multiKeySet, OutStream& os)
@@ -481,7 +477,7 @@ void Serializer<MultiKeySet>::serialize(const MultiKeySet& multiKeySet, OutStrea
     }
 }
 
-bool Serializer<MultiKeySet>::deserialize(InStream& is, MultiKeySet& multiKeySet)
+void Serializer<MultiKeySet>::deserialize(InStream& is, MultiKeySet& multiKeySet)
 {
     IniFormat::IStream ini(is);
 
@@ -489,13 +485,14 @@ bool Serializer<MultiKeySet>::deserialize(InStream& is, MultiKeySet& multiKeySet
 
     while (ini.nextSection(sectionName))
     {
-        int multiId;
+        unsigned int multiId;
         StrRef typeStr;
         StrRef numStr;
 
         if (StrUtil::cutTrim(sectionName, typeStr, ' ', numStr) &&
             typeStr == "multi" &&
-            StrUtil::parseUInt(numStr, multiId))
+            StrUtil::parseUInt(numStr, multiId) &&
+            multiId < multiKeySet.size())
         {
             auto& multiKey(multiKeySet[multiId]);
 
@@ -521,8 +518,6 @@ bool Serializer<MultiKeySet>::deserialize(InStream& is, MultiKeySet& multiKeySet
             }
         }
     }
-
-    return true;
 }
 
 void Serializer<SmartKeySet>::serialize(const SmartKeySet& smartKeySet, OutStream& os)
@@ -561,7 +556,7 @@ void Serializer<SmartKeySet>::serialize(const SmartKeySet& smartKeySet, OutStrea
     }
 }
 
-bool Serializer<SmartKeySet>::deserialize(InStream& is, SmartKeySet& smartKeySet)
+void Serializer<SmartKeySet>::deserialize(InStream& is, SmartKeySet& smartKeySet)
 {
     IniFormat::IStream ini(is);
 
@@ -569,13 +564,14 @@ bool Serializer<SmartKeySet>::deserialize(InStream& is, SmartKeySet& smartKeySet
 
     while (ini.nextSection(sectionName))
     {
-        int smartId;
+        unsigned int smartId;
         StrRef typeStr;
         StrRef numStr;
 
         if (StrUtil::cutTrim(sectionName, typeStr, ' ', numStr) &&
             typeStr == "smart" &&
-            StrUtil::parseUInt(numStr, smartId))
+            StrUtil::parseUInt(numStr, smartId) &&
+            smartId < smartKeySet.size())
         {
             auto& smartKey(smartKeySet[smartId]);
 
@@ -601,6 +597,4 @@ bool Serializer<SmartKeySet>::deserialize(InStream& is, SmartKeySet& smartKeySet
             }
         }
     }
-
-    return true;
 }
