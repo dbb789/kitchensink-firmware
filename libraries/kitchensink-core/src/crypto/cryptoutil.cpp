@@ -34,10 +34,10 @@ Crypto::Key stretch(const StrRef&     password,
     // Dirty UTF-16LE conversion for 7-bit ASCII.
     std::array<uint8_t, (Config::kPasswordMax + Config::kPasswordSuffix.length()) * 2> pwdUtf16;
     std::size_t pwdUtf16Len(0);
-    
-    for (auto& c : password)
+
+    for (std::size_t i = 0; i < password.length() && i < Config::kPasswordMax; ++i)
     {
-        pwdUtf16[pwdUtf16Len++] = c;
+        pwdUtf16[pwdUtf16Len++] = password[i];
         pwdUtf16[pwdUtf16Len++] = 0;
     }
     
