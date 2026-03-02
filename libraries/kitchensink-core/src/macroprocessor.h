@@ -32,8 +32,8 @@ private:
     const SecureMacroSet&          mSecureMacroSet;
     const GlobalConfig&            mGlobalConfig;
     const Macro*                   mCurrent;
-    Macro::Content::const_iterator mBegin;
-    Macro::Content::const_iterator mEnd;
+    Macro::Content::const_iterator mCurrentState;
+    int                            mCurrentCount;
     Timer                          mPlaybackTimer;
     EventStage&                    mNext;
     

@@ -17,6 +17,8 @@ MacroProcessor::MacroProcessor(const MacroSet&       macroSet,
     , mSecureMacroSet(secureMacroSet)
     , mGlobalConfig(globalConfig)
     , mCurrent(nullptr)
+    , mCurrentState()
+    , mCurrentCount(0)
     , mPlaybackTimer(timer.createTimer())
     , mNext(next)
 { }
@@ -71,12 +73,19 @@ void MacroProcessor::processMacro(const Macro& macro,
                                   bool         pressed)
 {
     const auto& content(macro.content);
+    const auto size(content.end() - content.begin());    
 
+    // Exit early for no content playback.
+    if (size == 0)
+    {
+        return;
+    }
+    
     if (!pressed && macro.type == Macro::Type::kInvert)
     {
         mCurrent = &macro;
-        mBegin   = content.end() - 1;
-        mEnd     = content.begin() - 1;
+        mCurrentState = content.end() - 1;
+        mCurrentCount = -static_cast<int>(size);
                     
         playback();
     }
@@ -85,8 +94,8 @@ void MacroProcessor::processMacro(const Macro& macro,
         if (pressed)
         {
             mCurrent = &macro;
-            mBegin   = content.begin();
-            mEnd     = content.end();
+            mCurrentState = content.begin();
+            mCurrentCount = static_cast<int>(size);
                     
             playback();
         }
@@ -97,18 +106,32 @@ void MacroProcessor::playback()
 {
     if (mCurrent)
     {
-        while (mBegin != mEnd)
+        while (mCurrentCount != 0)
         {
-            const auto& event(*mBegin);
-            auto forward(mBegin < mEnd);
+            const auto& event(*mCurrentState);
+
+            bool forward(mCurrentCount > 0);
             
             if (forward)
             {
-                ++mBegin;
+                --mCurrentCount;
+
+                // Avoid incrementing mCurrentState past bounds - technically UB
+                // on the decrement case, but we'll do it both sides for
+                // consistency.
+                if (mCurrentCount != 0)
+                {
+                    ++mCurrentState;
+                }
             }
             else
             {
-                --mBegin;
+                ++mCurrentCount;
+
+                if (mCurrentCount != 0)
+                {
+                    --mCurrentState;
+                }
             }
             
             if (event.is<DelayEvent>())
