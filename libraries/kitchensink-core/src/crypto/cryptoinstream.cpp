@@ -212,6 +212,12 @@ bool CryptoInStream::readBlock()
         ArrayOutStream suffixStream(suffix);
         
         mInBuffer.read(suffixStream, suffix.size());
+
+        if (suffix[0] > Crypto::kAesBlockSize)
+        {
+            mState = State::kCorrupted;
+            return false;
+        }
         
         auto cipherTextTrailing(Crypto::kAesBlockSize - suffix[0]);
         
