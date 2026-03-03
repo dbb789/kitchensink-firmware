@@ -2,6 +2,12 @@
 
 #include "types/stroutstream.h"
 
+
+PasswordEntryWidget::PasswordContent::~PasswordContent()
+{
+    mText.clearSecure();
+}
+
 bool PasswordEntryWidget::PasswordContent::insertChar(char c, int position)
 {
     if (position >= 0 && position <= static_cast<int>(mText.length()))

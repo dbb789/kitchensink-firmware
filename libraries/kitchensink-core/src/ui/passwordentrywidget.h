@@ -8,14 +8,14 @@ class Timer;
 class StrRef;
 
 class PasswordEntryWidget : public Widget
-                      , public WidgetContainer
+                          , public WidgetContainer
 {
 public:
     class PasswordContent : public EntryWidget::Content
     {
     public:
         PasswordContent() = default;
-        virtual ~PasswordContent() = default;
+        virtual ~PasswordContent();
         
     public:
         virtual bool insertChar(char c, int position) override;
