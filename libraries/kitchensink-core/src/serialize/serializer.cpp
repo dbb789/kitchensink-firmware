@@ -224,9 +224,10 @@ void Serializer<MacroSet>::deserialize(InStream& is, MacroSet& macroSet)
                 {
                     int typeVal;
                     
-                    StrUtil::parseUInt(value, typeVal);
-
-                    macro.type = static_cast<Macro::Type>(typeVal);
+                    if (StrUtil::parseUInt(value, typeVal))
+                    {
+                        macro.type = static_cast<Macro::Type>(typeVal);
+                    }
                 }
 
                 if (key == "content")
