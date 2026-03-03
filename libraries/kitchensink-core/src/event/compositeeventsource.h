@@ -18,7 +18,7 @@ public:
 
 public:
     virtual void pollEvent(EventStage& next) override;
-    virtual bool flushEvents(EventStage& next) override;
+    virtual bool hasPendingEvents() const override;
     
 private:
     Entries mEntries;
@@ -47,16 +47,17 @@ void CompositeEventSource<Size>::pollEvent(EventStage& next)
 
 template <std::size_t Size>
 inline
-bool CompositeEventSource<Size>::flushEvents(EventStage& next)
+bool CompositeEventSource<Size>::hasPendingEvents() const
 {
-    bool more(false);
-        
     for (auto entry : mEntries)
     {
-        more |= entry->flushEvents(next);
+        if (entry->hasPendingEvents())
+        {
+            return true;
+        }
     }
 
-    return more;
+    return false;
 }
 
 #endif

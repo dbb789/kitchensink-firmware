@@ -70,25 +70,17 @@ void KeySource::pollEvent(EventStage& next)
     }
 }
 
-bool KeySource::flushEvents(EventStage& next)
+bool KeySource::hasPendingEvents() const
 {
-    bool more(false);
-
-    pollEvent(next);
-    
-    mKeyHardware.pressed(KeyHardwareEventHandler::create([&](const KeyHardwareEvent&)
-    {
-        more = true;
-    }));
-
-    return more;
+    // Allows higher level components to wait until the user's lifted their hands off the keys.
+    return mKeyHardware.anyPressed();
 }
 
 bool KeySource::readKeyLocation(KeyLocation& location)
 {
     bool locationSet(false);
     
-    mKeyHardware.pressed(KeyHardwareEventHandler::create([&](const KeyHardwareEvent& keyboardEvent)
+    mKeyHardware.currentlyPressed(KeyHardwareEventHandler::create([&](const KeyHardwareEvent& keyboardEvent)
     {
         location.row    = keyboardEvent.row;
         location.column = keyboardEvent.column;
@@ -102,7 +94,7 @@ void KeySource::processLayerChange(const LayerStack::Mask& currentMask,
                                    const LayerStack::Mask& nextMask,
                                    EventStage&             next)
 {
-    mKeyHardware.pressed(KeyHardwareEventHandler::create([&](const KeyHardwareEvent& event)
+    mKeyHardware.currentlyPressed(KeyHardwareEventHandler::create([&](const KeyHardwareEvent& event)
     {
         auto currentEvent(mLayerStack.at(currentMask,
                                         event.row,

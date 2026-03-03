@@ -20,9 +20,9 @@ public:
     virtual void poll(uint32_t                       timeMs,
                       const KeyHardwareEventHandler& handler) override;
 
-    virtual void pressed(const KeyHardwareEventHandler& callback) override;
+    virtual void currentlyPressed(const KeyHardwareEventHandler& callback) override;
     
-    virtual bool any() const override;
+    virtual bool anyPressed() const override;
 
 private:
     Entries mEntries;
@@ -52,26 +52,26 @@ void CompositeKeyHardware<Size>::poll(uint32_t                       timeMs,
 
 template <std::size_t Size>
 inline
-void CompositeKeyHardware<Size>::pressed(const KeyHardwareEventHandler& handler)
+void CompositeKeyHardware<Size>::currentlyPressed(const KeyHardwareEventHandler& handler)
 {
     for (auto entry : mEntries)
     {
-        entry->pressed(handler);
+        entry->currentlyPressed(handler);
     }    
 }
 
 template <std::size_t Size>
 inline
-bool CompositeKeyHardware<Size>::any() const
+bool CompositeKeyHardware<Size>::anyPressed() const
 {
-    bool any(false);
+    bool anyPressed(false);
 
     for (auto entry : mEntries)
     {
-        any |= entry->any();
+        anyPressed |= entry->anyPressed();
     }    
 
-    return any;
+    return anyPressed;
 }
 
 

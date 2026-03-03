@@ -11,9 +11,9 @@ public:
     virtual void poll(uint32_t                       timeMs,
                       const KeyHardwareEventHandler& handler) = 0;
 
-    virtual void pressed(const KeyHardwareEventHandler& handler) = 0;
+    virtual void currentlyPressed(const KeyHardwareEventHandler& handler) = 0;
     
-    virtual bool any() const = 0;
+    virtual bool anyPressed() const = 0;
 };
 
 #endif

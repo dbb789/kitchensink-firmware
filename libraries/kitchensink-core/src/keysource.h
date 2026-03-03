@@ -19,7 +19,7 @@ public:
 
 public:
     virtual void pollEvent(EventStage& next) override;
-    virtual bool flushEvents(EventStage& next) override;
+    virtual bool hasPendingEvents() const override;
     
 public:
     void setLayer(int layer, bool enabled);

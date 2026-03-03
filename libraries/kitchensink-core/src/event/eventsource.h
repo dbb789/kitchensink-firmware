@@ -7,12 +7,12 @@ class EventSource
 {
 public:
     virtual void pollEvent(EventStage& next) = 0;
-    virtual bool flushEvents(EventStage&);
+    virtual bool hasPendingEvents() const;
 };
 
 
 inline
-bool EventSource::flushEvents(EventStage&)
+bool EventSource::hasPendingEvents() const
 {
     return false;
 }
