@@ -10,7 +10,10 @@ void EventBuffer::pollEvent(EventStage& next)
 
 bool EventBuffer::processEvent(const Event& event)
 {
-    mBuffer.pushBack(event);
-
+    if (!mBuffer.full())
+    {
+        mBuffer.pushBack(event);
+    }
+    
     return true;
 }
