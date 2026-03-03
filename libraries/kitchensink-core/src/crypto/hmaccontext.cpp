@@ -27,6 +27,10 @@ HMACContext::~HMACContext()
 
 void HMACContext::init(const Crypto::Key& key)
 {
+    assert(!mContextInitialized);
+    
+    mbedtls_md_init(&mContext);
+    
     int setupRc = mbedtls_md_setup(&mContext,
                                    mbedtls_md_info_from_type(MBEDTLS_MD_SHA256),
                                    1);

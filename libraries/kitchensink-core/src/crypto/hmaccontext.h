@@ -24,6 +24,10 @@ public:
 private:
     bool                 mContextInitialized;
     mbedtls_md_context_t mContext;
+    
+private:
+    HMACContext(const HMACContext&) = delete;
+    HMACContext& operator=(const HMACContext&) = delete;
 };
 
 #endif
