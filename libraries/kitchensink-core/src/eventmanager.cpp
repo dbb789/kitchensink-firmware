@@ -38,11 +38,9 @@ void EventManager::poll(EventStage& output)
 
 void EventManager::flush(EventStage& output)
 {
-    ToplevelEventStage::OutputGuard guard(mToplevel, output);
-    
     do
     {
-        mEventSource.pollEvent(mRootEventStage);
+        poll(output);
     }
     while (mEventSource.hasPendingEvents());
 }
