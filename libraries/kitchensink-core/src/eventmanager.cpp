@@ -3,26 +3,37 @@
 #include "event/eventsource.h"
 
 EventManager::EventManager(EventSource&        eventSource,
-                           EventStage&         input,
+                           EventStage&         rootEventStage,
                            ToplevelEventStage& toplevel,
                            EventStage&         nDefaultOutput)
     : defaultOutput(nDefaultOutput)
     , mEventSource(eventSource)
-    , mInput(input)
+    , mEventBuffer()
+    , mRootEventStage(rootEventStage)
     , mToplevel(toplevel)
 { }
 
 bool EventManager::processEvent(const Event& event)
 {
-    return mBuffer.processEvent(event);
+    // Buffer overflow is a no-op as it's generally never supposed to happen.
+    if (!mEventBuffer.full())
+    {
+        mEventBuffer.pushBack(event);
+    }
+    
+    return true;
 }
 
 void EventManager::poll(EventStage& output)
 {
     ToplevelEventStage::OutputGuard guard(mToplevel, output);
-        
-    mBuffer.pollEvent(mInput);
-    mEventSource.pollEvent(mInput);
+
+    if (!mEventBuffer.empty())
+    {
+        mRootEventStage.processEvent(mEventBuffer.popFront());
+    }
+    
+    mEventSource.pollEvent(mRootEventStage);
 }
 
 void EventManager::flush(EventStage& output)
@@ -31,7 +42,7 @@ void EventManager::flush(EventStage& output)
     
     do
     {
-        mEventSource.pollEvent(mInput);
+        mEventSource.pollEvent(mRootEventStage);
     }
     while (mEventSource.hasPendingEvents());
 }
