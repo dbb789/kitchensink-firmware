@@ -1,12 +1,13 @@
 AR = ar
 CC = clang
 CPP = clang++
-INCLUDES = -I. -I../src -I/home/user/Arduino/libraries/kitchensink-mbedtls/src
+ARDUINO_LIBRARIES ?= $(HOME)/Arduino
+INCLUDES = -I. -I../src -I$(ARDUINO_LIBRARIES)/libraries/kitchensink-mbedtls/src
 C_FLAGS = -g -Wall $(INCLUDES)
 CPP_FLAGS = -g -std=gnu++14 -Wall -fsanitize=address $(INCLUDES)
 LD_FLAGS = -fsanitize=address
-C_FILES = $(wildcard /home/user/Arduino/libraries/kitchensink-mbedtls/src/*.c)
-CPP_FILES = $(wildcard *.cpp) $(wildcard ../src/types/*.cpp) $(wildcard ../src/crypto/*.cpp)
+C_FILES = $(wildcard $(ARDUINO_LIBRARIES)/libraries/kitchensink-mbedtls/src/*.c)
+CPP_FILES = $(wildcard */*.cpp) $(wildcard ../src/types/*.cpp) $(wildcard ../src/crypto/*.cpp)
 O_FILES = $(C_FILES:.c=.o) $(CPP_FILES:.cpp=.o)
 TARGET = tests
 GTEST_DIR = /usr/src/gtest
