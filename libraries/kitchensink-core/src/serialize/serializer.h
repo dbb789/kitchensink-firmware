@@ -1,7 +1,6 @@
 #ifndef INCLUDED_SERIALIZER_H
 #define INCLUDED_SERIALIZER_H
 
-#include "storage/storage.h"
 #include "types/strbuf.h"
 #include "types/strref.h"
 #include "types/range.h"

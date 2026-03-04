@@ -1,7 +1,6 @@
 #ifndef INCLUDED_INIFORMAT_H
 #define INCLUDED_INIFORMAT_H
 
-#include "storage/storage.h"
 #include "types/strbuf.h"
 #include "types/strinstream.h"
 

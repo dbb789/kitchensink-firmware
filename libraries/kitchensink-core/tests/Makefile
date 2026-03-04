@@ -7,7 +7,11 @@ C_FLAGS = -g -Wall $(INCLUDES)
 CPP_FLAGS = -g -std=gnu++14 -Wall -fsanitize=address $(INCLUDES)
 LD_FLAGS = -fsanitize=address
 C_FILES = $(wildcard $(ARDUINO_LIBRARIES)/libraries/kitchensink-mbedtls/src/*.c)
-CPP_FILES = $(wildcard */*.cpp) $(wildcard ../src/types/*.cpp) $(wildcard ../src/crypto/*.cpp)
+CPP_FILES = $(wildcard */*.cpp) $(wildcard ../src/types/*.cpp) $(wildcard ../src/crypto/*.cpp) \
+            $(wildcard ../src/data/*.cpp) \
+            $(wildcard ../src/event/*.cpp) \
+            $(wildcard ../src/serialize/*.cpp) \
+            $(wildcard ../src/log/*.cpp)
 O_FILES = $(C_FILES:.c=.o) $(CPP_FILES:.cpp=.o)
 TARGET = tests
 GTEST_DIR = /usr/src/gtest
