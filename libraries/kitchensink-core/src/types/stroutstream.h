@@ -29,6 +29,10 @@ private:
     std::size_t  mCapacity;
     std::size_t* mLength;
     char*        mData;
+
+private:
+    StrOutStream(const StrOutStream&) = delete;
+    StrOutStream& operator=(const StrOutStream&) = delete;
 };
 
 
