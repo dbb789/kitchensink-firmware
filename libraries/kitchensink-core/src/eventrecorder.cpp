@@ -19,19 +19,23 @@ bool EventRecorder::processEvent(const Event& event)
     {
         if (event.isUserEvent())
         {
-            if (mSize < mContent.size())
+            if (mRealtime)
             {
-                if (mRealtime)
+                auto nowMs(CtrlUtil::nowMs());
+                
+                if (mLastMs != 0)
                 {
-                    auto nowMs(CtrlUtil::nowMs());
+                    Event event;
+                    uint32_t durationMs(nowMs - mLastMs);
                     
-                    if (mLastMs != 0)
+                    while (DelayEvent::createEvents(durationMs, event)
+                           && mSize < mContent.size())
                     {
-                        mContent[mSize++] = DelayEvent::create(nowMs - mLastMs); 
+                        mContent[mSize++] = event;
                     }
-                    
-                    mLastMs = nowMs;
                 }
+                
+                mLastMs = nowMs;
             }
             
             if (mSize < mContent.size())

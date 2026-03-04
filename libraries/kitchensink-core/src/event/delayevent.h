@@ -7,9 +7,11 @@ class DelayEvent
 {
 public:
     static constexpr Event::Type kType = Event::Type::kDelay;
-
+    static constexpr uint32_t kMaxDelayMs = 0xfff;
+    
 public:
-    static constexpr Event create(uint32_t delayMs);
+    static bool createEvents(uint32_t& delayMs, Event& event);
+    static Event create(uint32_t delayMs);
     
 private:
     explicit constexpr DelayEvent(const Event& event);
@@ -21,12 +23,6 @@ private:
     friend class Event;
 };
 
-
-inline
-constexpr Event DelayEvent::create(uint32_t delayMs)
-{
-    return Event(kType, delayMs >> 8, delayMs);
-}
 
 inline
 constexpr DelayEvent::DelayEvent(const Event& event)
