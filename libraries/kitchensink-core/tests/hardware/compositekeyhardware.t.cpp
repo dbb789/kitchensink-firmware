@@ -3,11 +3,14 @@
 #include "hardware/compositekeyhardware.h"
 #include "hardware/keyhardwareeventhandler.h"
 
+namespace
+{
+
 struct MockKeyHardware : public KeyHardware
 {
-    int  pollCount             = 0;
-    int  currentlyPressedCount = 0;
-    bool pressed               = false;
+    int pollCount = 0;
+    int currentlyPressedCount = 0;
+    bool pressed = false;
 
     void poll(uint32_t, const KeyHardwareEventHandler&) override
     {
@@ -24,6 +27,8 @@ struct MockKeyHardware : public KeyHardware
         return pressed;
     }
 };
+
+}
 
 TEST(CompositeKeyHardware, PollForwardsToAllEntries)
 {

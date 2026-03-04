@@ -8,6 +8,8 @@
 #include <array>
 #include <vector>
 
+namespace {
+
 struct MockKeyDriver
 {
     Bitmask2d<2, 2> scanResult;
@@ -17,6 +19,8 @@ struct MockKeyDriver
         state = scanResult;
     }
 };
+
+} // namespace
 
 TEST(KeyboardPlate, AnyPressedFalseInitially)
 {

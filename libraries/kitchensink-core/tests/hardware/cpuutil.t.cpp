@@ -2,6 +2,8 @@
 
 #include "hardware/cpuutil.h"
 
+namespace {
+
 struct MockCpuDriver : public CpuUtil::Driver
 {
     bool        bootloaderCalled  = false;
@@ -23,6 +25,8 @@ struct MockCpuDriver : public CpuUtil::Driver
         return nowMsResult;
     }
 };
+
+} // namespace
 
 TEST(CpuUtil, NullDriverNowMsReturnsZero)
 {

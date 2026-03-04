@@ -12,7 +12,8 @@ CPP_FILES = $(wildcard */*.cpp) $(wildcard ../src/types/*.cpp) $(wildcard ../src
             $(wildcard ../src/event/*.cpp) \
             $(wildcard ../src/serialize/*.cpp) \
             $(wildcard ../src/log/*.cpp) \
-            $(wildcard ../src/hardware/*.cpp)
+            $(wildcard ../src/hardware/*.cpp) \
+            $(wildcard ../src/timer/*.cpp)
 O_FILES = $(C_FILES:.c=.o) $(CPP_FILES:.cpp=.o)
 TARGET = tests
 GTEST_DIR = /usr/src/gtest
