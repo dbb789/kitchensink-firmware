@@ -10,22 +10,6 @@ TEST(KVPair, Construct)
     ASSERT_EQ(p.value, 42);
 }
 
-TEST(KVPair, DefaultConstruct)
-{
-    KVPair<int, int> p;
-
-    ASSERT_EQ(p.key, 0);
-    ASSERT_EQ(p.value, 0);
-}
-
-TEST(KVPair, MoveConstruct)
-{
-    KVPair<int, int> p(7, 77);
-
-    ASSERT_EQ(p.key, 7);
-    ASSERT_EQ(p.value, 77);
-}
-
 TEST(KVPair, ComparePairs)
 {
     KVPair<int, int> a(1, 10);

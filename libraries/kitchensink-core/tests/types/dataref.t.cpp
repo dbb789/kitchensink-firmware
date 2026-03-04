@@ -31,6 +31,9 @@ TEST(DataRef, FromStrRef)
 
     ASSERT_EQ(d.size(), 5);
     ASSERT_EQ(d[0], 'h');
+    ASSERT_EQ(d[1], 'e');
+    ASSERT_EQ(d[2], 'l');
+    ASSERT_EQ(d[3], 'l');
     ASSERT_EQ(d[4], 'o');
 }
 
