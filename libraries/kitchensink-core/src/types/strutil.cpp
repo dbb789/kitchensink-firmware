@@ -12,9 +12,9 @@ namespace
 {
 
 // Regular std::pow() seems to be pulling in an extra 5KB.
-unsigned int smPow(int n, int p)
+unsigned int smPow(unsigned int n, unsigned int p)
 {
-    int value(1);
+    unsigned int value(1);
     
     while (p--)
     {
