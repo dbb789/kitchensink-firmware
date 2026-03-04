@@ -18,16 +18,17 @@
 #include "hardware/compositekeyhardware.h"
 #include "hardware/keyboardplate.h"
 
+#include <arduinocpudriver.h>
 #include <bluefruitkeyboard.h>
 #include "hardware/arduinousbkeyboard.h"
 #include <gpiokeyset.h>
 
 void setup()
 {
-}
+    ArduinoCpuDriver cpuDriver;
 
-void loop()
-{
+    CpuUtil::setDriver(&cpuDriver);
+    
     ArduinoUsbKeyboard usbKeyboard;
 
     EntropyPool entropyPool;
@@ -94,4 +95,9 @@ void loop()
                                 entropyPool);
 
     screenManager.poll();
+}
+
+void loop()
+{
+    // ...
 }

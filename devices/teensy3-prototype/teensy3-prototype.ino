@@ -17,6 +17,7 @@
 #include "event/eventlogger.h"
 #include "log/log.h"
 
+#include <teensycpudriver.h>
 #include <teensyusbkeyboard.h>
 #include <teensyledsource.h>
 #include <dmoled32display.h>
@@ -25,6 +26,10 @@
 
 void setup()
 {
+    TeensyCpuDriver cpuDriver;
+
+    CpuUtil::setDriver(&cpuDriver);
+    
     I2CKeyMatrix::setup();
 
     // SerialLogger serialLogger;

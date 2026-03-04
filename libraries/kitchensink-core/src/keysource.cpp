@@ -3,7 +3,7 @@
 #include "event/keyevent.h"
 #include "keyboardstate.h"
 #include "keylocation.h"
-#include "hardware/ctrlutil.h"
+#include "hardware/cpuutil.h"
 #include "hardware/keyhardwareevent.h"
 #include "hardware/keyhardwareeventhandler.h"
 
@@ -39,7 +39,7 @@ int KeySource::topLayer()
 
 void KeySource::pollEvent(EventStage& next)
 {
-    auto timeMs(CtrlUtil::nowMs());
+    auto timeMs(CpuUtil::nowMs());
     
     // Layer changes shouldn't take effect until the next set of key events -
     // take a copy of the mask.

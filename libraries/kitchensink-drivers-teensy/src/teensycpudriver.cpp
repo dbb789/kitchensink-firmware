@@ -1,4 +1,4 @@
-#include "hardware/ctrlutil.h"
+#include "teensycpudriver.h"
 
 #include <Arduino.h>
 
@@ -8,17 +8,12 @@
 
 extern "C" char* sbrk(int incr);
 
-namespace CtrlUtil
+void TeensyCpuDriver::bootloader()
 {
-
-void bootloader()
-{
-    #ifdef TEENSYDUINO
     _reboot_Teensyduino_();
-    #endif
 }
 
-std::size_t freeMemory()
+std::size_t TeensyCpuDriver::freeMemory()
 {
     // http://forum.pjrc.com/threads/23256-Get-Free-Memory-for-Teensy-3-0
 
@@ -26,9 +21,7 @@ std::size_t freeMemory()
     return &top - reinterpret_cast<char*>(sbrk(0));
 }
 
-uint32_t nowMs()
+uint32_t TeensyCpuDriver::nowMs()
 {
     return millis();
-}
-
 }

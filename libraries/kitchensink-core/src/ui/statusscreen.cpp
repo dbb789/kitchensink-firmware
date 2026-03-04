@@ -2,8 +2,7 @@
 
 #include "event/eventstage.h"
 #include "eventmanager.h"
-#include "hardware/ctrlutil.h"
-#include "hardware/ctrlutil.h"
+#include "hardware/cpuutil.h"
 #include "keyboardstate.h"
 #include "storage/storage.h"
 #include "timer/timermanager.h"
@@ -61,7 +60,7 @@ void StatusScreen::screenInit()
     {
         StrOutStream os(mMemoryUsage.value);
 
-        os.appendInt(static_cast<int>(CtrlUtil::freeMemory()));
+        os.appendInt(static_cast<int>(CpuUtil::freeMemory()));
         os.appendStr(" bytes");
         
         mMemoryUsage.invalidateWidget();
@@ -125,7 +124,7 @@ void StatusScreen::screenInit()
     
     mScanRate.invalidateWidget();
 
-    auto start(CtrlUtil::nowMs());
+    auto start(CpuUtil::nowMs());
 
     NullEventStage nullNext;
     
@@ -134,7 +133,7 @@ void StatusScreen::screenInit()
         mEventManager.poll(nullNext);
     }
     
-    auto end(CtrlUtil::nowMs());
+    auto end(CpuUtil::nowMs());
 
     {
         StrOutStream os(mScanRate.value);

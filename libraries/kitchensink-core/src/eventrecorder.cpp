@@ -3,7 +3,7 @@
 #include "event/delayevent.h"
 #include "event/screenevent.h"
 #include "event/tickevent.h"
-#include "hardware/ctrlutil.h"
+#include "hardware/cpuutil.h"
 
 EventRecorder::EventRecorder(bool realtime)
     : mLastMs(0)
@@ -21,7 +21,7 @@ bool EventRecorder::processEvent(const Event& event)
         {
             if (mRealtime)
             {
-                auto nowMs(CtrlUtil::nowMs());
+                auto nowMs(CpuUtil::nowMs());
                 
                 if (mLastMs != 0)
                 {

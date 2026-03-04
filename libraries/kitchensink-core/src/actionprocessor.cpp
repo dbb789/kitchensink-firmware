@@ -3,7 +3,7 @@
 #include "crypto/entropypool.h"
 #include "event/actionevent.h"
 #include "event/event.h"
-#include "hardware/ctrlutil.h"
+#include "hardware/cpuutil.h"
 #include "storage/storage.h"
 #include "types/dataref.h"
 #include "keyboardstate.h"
@@ -25,7 +25,7 @@ bool ActionProcessor::processEvent(const Event& event)
         switch (type)
         {
         case ActionEvent::Type::kBootloader:
-            CtrlUtil::bootloader();
+            CpuUtil::bootloader();
             break;
             
         case ActionEvent::Type::kDumpEntropyPool:

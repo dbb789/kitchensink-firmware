@@ -18,15 +18,16 @@
 #include "types/datarefinstream.h"
 #include "event/compositeeventsource.h"
 
+#include <arduinocpudriver.h>
 #include <bluefruitkeyboard.h>
 #include <gpiokeyset.h>
 
 void setup()
 {
-}
+    ArduinoCpuDriver cpuDriver;
 
-void loop()
-{
+    CpuUtil::setDriver(&cpuDriver);
+
     KeyboardState keyboardState;
 
     static const char* const LayoutConfig =
@@ -113,4 +114,9 @@ void loop()
     {
         eventManager.poll(usbKeyboard);
     }
+}
+
+void loop()
+{
+    // ...
 }

@@ -7,7 +7,7 @@
 #include "hardware/keyhardware.h"
 #include "hardware/keyhardwareevent.h"
 #include "hardware/keyhardwareeventhandler.h"
-#include "hardware/ctrlutil.h"
+#include "hardware/cpuutil.h"
 #include "types/stroutstream.h"
 
 KeyLocationWidget::KeyLocationWidget(TimerManager& timerManager,
@@ -77,7 +77,7 @@ void KeyLocationWidget::readNextKeyPress()
 
     do
     {
-        auto now(CtrlUtil::nowMs());
+        auto now(CpuUtil::nowMs());
             
         auto flash((now / 250) & 1);
                                       

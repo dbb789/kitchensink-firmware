@@ -1,13 +1,13 @@
 #include "timer/timermanager.h"
 #include "types/range.h"
 #include "event/event.h"
-#include "hardware/ctrlutil.h"
+#include "hardware/cpuutil.h"
 
 #include <algorithm>
 
 void TimerManager::pollEvent(EventStage& next)
 {
-    auto timeMs(CtrlUtil::nowMs());
+    auto timeMs(CpuUtil::nowMs());
     
     if (!mTimerQueue.empty())
     {
@@ -88,7 +88,7 @@ void TimerManager::scheduleRepeating(const Timer& timer,
     
     auto& timerEntry(mTimerMap[tickId]);
 
-    auto timeMs(delayMs + CtrlUtil::nowMs());
+    auto timeMs(delayMs + CpuUtil::nowMs());
             
     timerEntry.currentMs     = timeMs;
     timerEntry.repeatDelayMs = repeatDelayMs;

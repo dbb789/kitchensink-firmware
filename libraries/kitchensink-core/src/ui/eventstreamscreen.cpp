@@ -5,7 +5,7 @@
 #include "types/strbuf.h"
 #include "types/stroutstream.h"
 #include "serialize/eventserializer.h"
-#include "hardware/ctrlutil.h"
+#include "hardware/cpuutil.h"
 
 EventStreamScreen::EventStreamScreen()
     : mItems({ mLabels[0], mLabels[1], mLabels[2], mLabels[3] })
@@ -30,7 +30,7 @@ bool EventStreamScreen::processEvent(const Event& event)
 
         out.reset();
 
-        out.appendInt(CtrlUtil::nowMs());
+        out.appendInt(CpuUtil::nowMs());
         out.appendStr(" : ");
         EventSerializer::serializeReadable(*it, out);
         out.appendStr(" / ");

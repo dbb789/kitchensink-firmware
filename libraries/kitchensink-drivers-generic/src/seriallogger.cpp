@@ -2,7 +2,7 @@
 
 #include "types/strbuf.h"
 #include "types/stroutstream.h"
-#include "hardware/ctrlutil.h"
+#include "hardware/cpuutil.h"
 
 #ifdef KSINK_SERIALLOGGER
 #include <usb_seremu.h>
@@ -28,7 +28,7 @@ void SerialLogger::log(const StrRef& str)
     StrBuf<48> strBuf;
     StrOutStream oss(strBuf);
 
-    oss.appendInt(CtrlUtil::nowMs(), "%8d");
+    oss.appendInt(CpuUtil::nowMs(), "%8d");
     oss.appendStr(" : ");
     oss.appendStr(str);
     oss.appendChar('\n');

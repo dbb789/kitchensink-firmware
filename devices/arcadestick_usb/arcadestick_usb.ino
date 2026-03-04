@@ -19,14 +19,15 @@
 #include "event/compositeeventsource.h"
 #include "hardware/arduinousbkeyboard.h"
 
+#include <arduinocpudriver.h>
 #include <gpiokeyset.h>
 
 void setup()
 {
-}
+    ArduinoCpuDriver cpuDriver;
 
-void loop()
-{
+    CpuUtil::setDriver(&cpuDriver);    
+
     KeyboardState keyboardState;
 
     static const char* const LayoutConfig =
@@ -113,4 +114,9 @@ void loop()
     {
         eventManager.poll(usbKeyboard);
     }
+}
+
+void loop()
+{
+    // ...
 }
