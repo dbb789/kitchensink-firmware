@@ -26,22 +26,24 @@ public:
     const StrOutStream& appendInt(int n, const char* fmt = "%d") const;
     
 private:
-    char*       mData;
-    std::size_t mDataSize;
+    std::size_t  mCapacity;
+    std::size_t* mLength;
+    char*        mData;
 };
 
 
 template <std::size_t Capacity>
 inline
 StrOutStream::StrOutStream(StrBuf<Capacity>& buf)
-    : mData(buf.begin())
-    , mDataSize(buf.capacity() + 1) // StrBuf is null-terminated
+    : mCapacity(buf.capacity())
+    , mLength(&buf.mLength)
+    , mData(buf.begin())
 { }
 
 inline
 StrRef StrOutStream::str() const
 {
-    return StrRef(mData);
+    return StrRef(mData, mData + *mLength);
 }
 
 #endif

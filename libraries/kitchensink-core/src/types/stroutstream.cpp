@@ -7,38 +7,41 @@
 
 void StrOutStream::reset() const
 {
-    mData[0] = '\0';
+    *mLength = 0;
 }
 
 const StrOutStream& StrOutStream::appendStr(const StrRef& str) const
 {
-    auto currentLength(strlen(mData));
+    auto length(*mLength);
+    auto copyLen(std::min(str.length(), mCapacity - length));
+    
+    std::copy(str.begin(),
+              str.begin() + copyLen,
+              mData + length);
 
-    snprintf(mData + currentLength,
-             mDataSize - currentLength,
-             "%.*s", static_cast<int>(str.length()), str.begin());
+    *mLength += copyLen;
     
     return *this;
 }
 
 const StrOutStream& StrOutStream::appendChar(char c) const
 {
-    auto currentLength(strlen(mData));
-
-    if (currentLength < mDataSize - 1)
+    if (*mLength < mCapacity)
     {
-        mData[currentLength] = c;
-        mData[currentLength + 1] = '\0';
+        mData[*mLength] = c;
+        ++(*mLength);
     }
-
+    
     return *this;
 }
 
 const StrOutStream& StrOutStream::appendInt(int n, const char* fmt) const
 {
-    auto currentLength(strlen(mData));
+    char blk[64];
 
-    snprintf(mData + currentLength, mDataSize - currentLength, fmt, n);
+    std::snprintf(blk, sizeof(blk), fmt, n);
+
+    appendStr(StrRef(blk));
 
     return *this;
 }

@@ -50,10 +50,10 @@ TEST(StrOutStream, AppendStrOverflow)
     StrBuf<12> buf;
     StrOutStream os(buf);
     
-    os.appendStr("testtesttest");
+    os.appendStr("testtesttesttest");
     
-    ASSERT_EQ(os.str(), "testtesttes");
-    ASSERT_EQ(buf, "testtesttes");
+    ASSERT_EQ(os.str(), "testtesttest");
+    ASSERT_EQ(buf, "testtesttest");
 }
 
 TEST(StrOutStream, AppendChar)
@@ -80,7 +80,7 @@ TEST(StrOutStream, AppendCharOverflow)
         os.appendChar('t');
     }
 
-    ASSERT_EQ(os.str(), "ttt");
+    ASSERT_EQ(os.str(), "tttt");
 }
 
 TEST(StrOutStream, AppendIntSimple)
@@ -96,7 +96,7 @@ TEST(StrOutStream, AppendIntSimple)
 
 TEST(StrOutStream, AppendIntOverflow)
 {
-    StrBuf<5> buf;
+    StrBuf<4> buf;
     StrOutStream os(buf);
 
     os.appendChar('A');

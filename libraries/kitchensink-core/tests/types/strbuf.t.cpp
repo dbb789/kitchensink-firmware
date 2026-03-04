@@ -7,11 +7,9 @@ TEST(StrBuf, Empty)
     StrBuf<12> str;
 
     ASSERT_EQ(str, "");
-    ASSERT_EQ(str.capacity(), 11);
+    ASSERT_EQ(str.capacity(), 12);
     ASSERT_EQ(str.length(), 0);
     ASSERT_TRUE(str.empty());
-    ASSERT_EQ(str[0], '\0');
-    ASSERT_EQ(*(str.begin()), '\0');
     ASSERT_EQ(str.begin(), str.end());
 }
 
@@ -20,7 +18,7 @@ TEST(StrBuf, Construct)
     StrBuf<12> str("test");
 
     ASSERT_EQ(str, "test");
-    ASSERT_EQ(str.capacity(), 11);
+    ASSERT_EQ(str.capacity(), 12);
     ASSERT_EQ(str.length(), 4);
     ASSERT_FALSE(str.empty());
     
@@ -28,7 +26,6 @@ TEST(StrBuf, Construct)
     ASSERT_EQ(str[1], 'e');
     ASSERT_EQ(str[2], 's');
     ASSERT_EQ(str[3], 't');
-    ASSERT_EQ(str[4], '\0');
 
     auto it(str.begin());
     
@@ -36,13 +33,12 @@ TEST(StrBuf, Construct)
     ASSERT_EQ(*(++it), 'e');
     ASSERT_EQ(*(++it), 's');
     ASSERT_EQ(*(++it), 't');
-    ASSERT_EQ(*(++it), '\0');
-    ASSERT_EQ(it, str.end());
+    ASSERT_EQ(++it, str.end());
 }
 
 TEST(StrBuf, ConstructOverflow)
 {
-    StrBuf<4> str("abcdefg");
+    StrBuf<3> str("abcdefg");
 
     ASSERT_EQ(str, "abc");
     ASSERT_EQ(str.capacity(), 3);
@@ -52,15 +48,13 @@ TEST(StrBuf, ConstructOverflow)
     ASSERT_EQ(str[0], 'a');
     ASSERT_EQ(str[1], 'b');
     ASSERT_EQ(str[2], 'c');
-    ASSERT_EQ(str[3], '\0');
 
     auto it(str.begin());
 
     ASSERT_EQ(*it, 'a');
     ASSERT_EQ(*(++it), 'b');
     ASSERT_EQ(*(++it), 'c');
-    ASSERT_EQ(*(++it), '\0');
-    ASSERT_EQ(it, str.end());
+    ASSERT_EQ(++it, str.end());
 }
 
 TEST(StrBuf, Clear)
@@ -70,11 +64,9 @@ TEST(StrBuf, Clear)
     str.clear();
 
     ASSERT_EQ(str, "");
-    ASSERT_EQ(str.capacity(), 11);
+    ASSERT_EQ(str.capacity(), 12);
     ASSERT_EQ(str.length(), 0);
     ASSERT_TRUE(str.empty());
-    ASSERT_EQ(str[0], '\0');
-    ASSERT_EQ(*(str.begin()), '\0');
     ASSERT_EQ(str.begin(), str.end());
 }
 
@@ -108,7 +100,6 @@ TEST(StrBuf, InsertBegin)
     ASSERT_EQ(str[2], 'e');
     ASSERT_EQ(str[3], 's');
     ASSERT_EQ(str[4], 't');
-    ASSERT_EQ(str[5], '\0');
 
     auto it(str.begin());
     
@@ -117,8 +108,7 @@ TEST(StrBuf, InsertBegin)
     ASSERT_EQ(*(++it), 'e');
     ASSERT_EQ(*(++it), 's');
     ASSERT_EQ(*(++it), 't');
-    ASSERT_EQ(*(++it), '\0');
-    ASSERT_EQ(it, str.end());
+    ASSERT_EQ(++it, str.end());
 }
 
 TEST(StrBuf, InsertMid)
@@ -135,7 +125,6 @@ TEST(StrBuf, InsertMid)
     ASSERT_EQ(str[2], 's');
     ASSERT_EQ(str[3], 't');
     ASSERT_EQ(str[4], '!');
-    ASSERT_EQ(str[5], '\0');
 
     auto it(str.begin());
     
@@ -144,8 +133,7 @@ TEST(StrBuf, InsertMid)
     ASSERT_EQ(*(++it), 's');
     ASSERT_EQ(*(++it), 't');
     ASSERT_EQ(*(++it), '!');
-    ASSERT_EQ(*(++it), '\0');
-    ASSERT_EQ(it, str.end());
+    ASSERT_EQ(++it, str.end());
 }
 
 TEST(StrBuf, InsertEnd)
@@ -162,7 +150,6 @@ TEST(StrBuf, InsertEnd)
     ASSERT_EQ(str[2], 's');
     ASSERT_EQ(str[3], 't');
     ASSERT_EQ(str[4], '!');
-    ASSERT_EQ(str[5], '\0');
 
     auto it(str.begin());
     
@@ -171,13 +158,12 @@ TEST(StrBuf, InsertEnd)
     ASSERT_EQ(*(++it), 's');
     ASSERT_EQ(*(++it), 't');
     ASSERT_EQ(*(++it), '!');
-    ASSERT_EQ(*(++it), '\0');
-    ASSERT_EQ(it, str.end());
+    ASSERT_EQ(++it, str.end());
 }
 
 TEST(StrBuf, InsertOverflow)
 {
-    StrBuf<4> str("abc");
+    StrBuf<3> str("abc");
 
     str.insert(str.begin(), 'd');
 
@@ -197,7 +183,6 @@ TEST(StrBuf, EraseMid)
     ASSERT_EQ(str[1], 'e');
     ASSERT_EQ(str[2], 't');
     ASSERT_EQ(str[3], '!');
-    ASSERT_EQ(str[4], '\0');
 
     auto it(str.begin());
     
@@ -205,8 +190,7 @@ TEST(StrBuf, EraseMid)
     ASSERT_EQ(*(++it), 'e');
     ASSERT_EQ(*(++it), 't');
     ASSERT_EQ(*(++it), '!');
-    ASSERT_EQ(*(++it), '\0');
-    ASSERT_EQ(it, str.end());
+    ASSERT_EQ(++it, str.end());
 }
 
 TEST(StrBuf, EraseEnd)
@@ -222,7 +206,6 @@ TEST(StrBuf, EraseEnd)
     ASSERT_EQ(str[1], 'e');
     ASSERT_EQ(str[2], 's');
     ASSERT_EQ(str[3], 't');
-    ASSERT_EQ(str[4], '\0');
 
     auto it(str.begin());
     
@@ -230,8 +213,7 @@ TEST(StrBuf, EraseEnd)
     ASSERT_EQ(*(++it), 'e');
     ASSERT_EQ(*(++it), 's');
     ASSERT_EQ(*(++it), 't');
-    ASSERT_EQ(*(++it), '\0');
-    ASSERT_EQ(it, str.end());
+    ASSERT_EQ(++it, str.end());
 }
 
 TEST(StrBuf, EraseAllForward)
@@ -244,11 +226,9 @@ TEST(StrBuf, EraseAllForward)
     }
 
     ASSERT_EQ(str, "");
-    ASSERT_EQ(str.capacity(), 11);
+    ASSERT_EQ(str.capacity(), 12);
     ASSERT_EQ(str.length(), 0);
     ASSERT_TRUE(str.empty());
-    ASSERT_EQ(str[0], '\0');
-    ASSERT_EQ(*(str.begin()), '\0');
     ASSERT_EQ(str.begin(), str.end());
 }
 
@@ -262,10 +242,8 @@ TEST(StrBuf, EraseAllBackward)
     }
 
     ASSERT_EQ(str, "");
-    ASSERT_EQ(str.capacity(), 11);
+    ASSERT_EQ(str.capacity(), 12);
     ASSERT_EQ(str.length(), 0);
     ASSERT_TRUE(str.empty());
-    ASSERT_EQ(str[0], '\0');
-    ASSERT_EQ(*(str.begin()), '\0');
     ASSERT_EQ(str.begin(), str.end());
 }

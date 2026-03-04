@@ -46,18 +46,19 @@ public:
     char& operator[](std::size_t n);
     
 private:
-    Data mData;
+    std::size_t mLength;
+    Data        mData;
 
 private:
-    static constexpr std::size_t length(const_iterator data);
+    friend class StrOutStream;
 };
 
 
 template <std::size_t Capacity>
 inline
 StrBuf<Capacity>::StrBuf()
+    : mLength(0)
 {
-    mData[0] = '\0';
 }
 
 template <std::size_t Capacity>
@@ -80,10 +81,12 @@ StrBuf<Capacity>& StrBuf<Capacity>::insert(iterator it, char c)
     
     auto endIt(end());
     
-    std::move_backward(it, endIt + 1, endIt + 2);
+    std::move_backward(it, endIt, endIt + 1);
 
     *it = c;
 
+    ++mLength;
+    
     return *this;
 }
 
@@ -91,7 +94,9 @@ template <std::size_t Capacity>
 inline
 StrBuf<Capacity>& StrBuf<Capacity>::erase(iterator it)
 {
-    std::move(it + 1, end() + 1, it);
+    std::move(it + 1, end(), it);
+
+    --mLength;
     
     return *this;
 }
@@ -100,13 +105,15 @@ template <std::size_t Capacity>
 inline
 void StrBuf<Capacity>::clear()
 {
-    mData.front() = '\0';
+    mLength = 0;
 }
 
 template <std::size_t Capacity>
 inline
 void StrBuf<Capacity>::clearSecure()
 {
+    clear();
+
     // Will not be optimised away as described here:
     // https://en.cppreference.com/w/cpp/string/byte/memset
     // Also note that we're clearing the full buffer here.
@@ -147,30 +154,32 @@ template <std::size_t Capacity>
 inline
 constexpr std::size_t StrBuf<Capacity>::length() const
 {
-    return length(mData.begin());
+    return mLength;
 }
 
 template <std::size_t Capacity>
 inline
 constexpr bool StrBuf<Capacity>::empty() const
 {
-    return mData.front() == '\0';
+    return mLength == 0;
 }
 
 template <std::size_t Capacity>
 inline
 constexpr std::size_t StrBuf<Capacity>::capacity() const
 {
-    return mData.size() - 1;
+    return mData.size();
 }
 
 template <std::size_t Capacity>
 inline
 StrBuf<Capacity>& StrBuf<Capacity>::operator=(const StrRef& strRef)
 {
-    *std::copy(strRef.begin(),
-               strRef.begin() + std::min(strRef.length(), capacity()),
-               mData.begin()) = '\0';
+    mLength = std::min(strRef.length(), capacity());
+    
+    std::copy(strRef.begin(),
+              strRef.begin() + mLength,
+              mData.begin());
     
     return *this;
 }
@@ -179,7 +188,7 @@ template <std::size_t Capacity>
 inline
 constexpr StrBuf<Capacity>::operator StrRef() const
 {
-    return StrRef(mData.begin());
+    return StrRef(begin(), end());
 }
 
 template <std::size_t Capacity>
@@ -194,21 +203,6 @@ inline
 char& StrBuf<Capacity>::operator[](std::size_t n)
 {
     return mData[n];
-}
-
-template <std::size_t Capacity>
-inline
-constexpr std::size_t StrBuf<Capacity>::length(const_iterator data)
-{
-    std::size_t length(0);
-
-    while (*data != '\0')
-    {
-        ++length;
-        ++data;
-    }
-
-    return length;
 }
 
 #endif
