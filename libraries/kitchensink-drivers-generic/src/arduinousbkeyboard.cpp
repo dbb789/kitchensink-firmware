@@ -1,7 +1,6 @@
 #ifndef TEENSYDUINO
 
-
-#include "hardware/arduinousbkeyboard.h"
+#include "arduinousbkeyboard.h"
 
 #include "event/keyevent.h"
 #include "data/keycodeutil.h"

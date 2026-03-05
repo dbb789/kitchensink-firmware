@@ -5,3 +5,4 @@
 doxygen/*
 .dir-locals.el
 libraries/kitchensink-core/tests/tests
+ks_password_suffix.txt

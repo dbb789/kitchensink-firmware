@@ -20,7 +20,7 @@
 
 #include <arduinocpudriver.h>
 #include <bluefruitkeyboard.h>
-#include "hardware/arduinousbkeyboard.h"
+#include <arduinousbkeyboard.h>
 #include <gpiokeyset.h>
 
 void setup()

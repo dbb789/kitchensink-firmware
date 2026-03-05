@@ -3,6 +3,7 @@
 
 #include "types/strref.h"
 
+#include <cassert>
 #include <cstdint>
 
 namespace Config
@@ -43,8 +44,11 @@ constexpr std::size_t kEntropyPoolSize     = 200;
 constexpr std::size_t kPasswordMin         = 1;
 constexpr std::size_t kPasswordMax         = 48;
 
-// It is HIGHLY recommended to change this.
-constexpr StrRef kPasswordSuffix = "_kitchenSink";
+#ifndef KS_PASSWORD_SUFFIX
+#error "A password suffix must be configured to build this library. Please read PASSWORD_SUFFIX.md for more information."
+#endif
+
+constexpr StrRef kPasswordSuffix = KS_PASSWORD_SUFFIX;
 
 };
 

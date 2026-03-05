@@ -1,5 +1,3 @@
 #!/bin/bash
 
-foo=${ARDUINO_PATH?"Need to set ARDUINO_PATH"}
-
-${ARDUINO_PATH}/arduino-cli compile -b adafruit:samd:adafruit_feather_m0 --libraries ../../libraries --warnings all $@ ./arcadestick_usb.ino
+arduino-cli compile -b adafruit:samd:adafruit_feather_m0 --libraries ../../libraries --build-property 'build.extra_flags=-DKS_PASSWORD_SUFFIX="_unused"' --warnings all $@ ./arcadestick_usb.ino

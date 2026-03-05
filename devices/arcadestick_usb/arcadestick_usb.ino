@@ -17,7 +17,7 @@
 #include "serialize/serializer.h"
 #include "types/datarefinstream.h"
 #include "event/compositeeventsource.h"
-#include "hardware/arduinousbkeyboard.h"
+#include "arduinousbkeyboard.h"
 
 #include <arduinocpudriver.h>
 #include <gpiokeyset.h>
