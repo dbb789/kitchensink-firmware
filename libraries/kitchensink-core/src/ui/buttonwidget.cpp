@@ -33,7 +33,8 @@ void ButtonWidget::render(const RasterLine& rasterLine, int row)
 
     auto xOffset(0);
     auto yOffset(0);
-    auto textWidth(Font::kWidth * text.length());
+    
+    int textWidth(Font::kWidth * text.length());
     
     if (textWidth < size.width)
     {

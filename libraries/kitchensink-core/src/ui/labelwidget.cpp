@@ -31,7 +31,8 @@ void LabelWidget::render(const RasterLine& rasterLine, int row)
 {
     auto size(widgetSize());
     auto xOffset(0);
-    auto textSize(Font::kWidth * text.length());
+    
+    int textSize(Font::kWidth * text.length());
     
     switch (justify)
     {
