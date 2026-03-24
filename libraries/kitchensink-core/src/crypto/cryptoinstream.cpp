@@ -157,20 +157,30 @@ void CryptoInStream::readHeader()
     
     std::array<uint8_t, Crypto::kAesBlockSize + Crypto::kAesKeyLen> dataIvKey;
 
-    CryptoUtil::decrypt(key,
-                        iv,
-                        dataIvKeyCrypt,
-                        dataIvKey);
+    Crypto::IV nextIv;
+    if (!CryptoUtil::decrypt(key,
+                             iv,
+                             dataIvKeyCrypt,
+                             dataIvKey,
+                             nextIv))
+    {
+        mState = State::kCorrupted;
+        return;
+    }
     
     ArrayUtil<decltype(dataIvKey)>::split(dataIvKey, mDataIv, mDataKey);
 
-    mHMAC.init(mDataKey);
+    if (!mHMAC.init(mDataKey))
+    {
+        mState = State::kCorrupted;
+        return;
+    }
 }
 
 bool CryptoInStream::readBlock()
 {
     static constexpr size_t SuffixLen = 33;
-
+    
     // Buffer underflow - this shouldn't happen.
     if (mInBuffer.size() < Crypto::kAesBlockSize)
     {
@@ -192,13 +202,23 @@ bool CryptoInStream::readBlock()
     ArrayOutStream inBlockStream(inBlock);
     
     mInBuffer.read(inBlockStream, Crypto::kAesBlockSize);
-    mHMAC.update(DataRef(inBlock.begin(), inBlock.end()));
+
+    if (!mHMAC.update(DataRef(inBlock.begin(), inBlock.end())))
+    {
+        mState = State::kCorrupted;
+        return false;
+    }
     
-    mDataIv = CryptoUtil::decrypt(mDataKey,
-                                  mDataIv,
-                                  Crypto::kAesBlockSize,
-                                  inBlock.begin(),
-                                  outBlock.begin());
+    if (!CryptoUtil::decrypt(mDataKey,
+                             mDataIv,
+                             Crypto::kAesBlockSize,
+                             inBlock.begin(),
+                             outBlock.begin(),
+                             mDataIv))
+    {
+        mState = State::kCorrupted;
+        return false;
+    }
     
     auto blockSize(Crypto::kAesBlockSize);
 

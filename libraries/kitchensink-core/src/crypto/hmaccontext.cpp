@@ -1,14 +1,16 @@
 #include "crypto/hmaccontext.h"
 
-#include <cassert>
-
 Crypto::HMAC HMACContext::generate(const Crypto::Key& key,
                                    const DataRef&     data)
 {
     HMACContext hmac;
 
-    hmac.init(key);
-    hmac.update(data);
+    if (!hmac.init(key) || !hmac.update(data))
+    {
+        Crypto::HMAC failed;
+        failed.fill(0);
+        return failed;
+    }
     
     return hmac.finish();
 }
@@ -25,9 +27,12 @@ HMACContext::~HMACContext()
     }
 }
 
-void HMACContext::init(const Crypto::Key& key)
+bool HMACContext::init(const Crypto::Key& key)
 {
-    assert(!mContextInitialized);
+    if (mContextInitialized)
+    {
+        return false;
+    }
     
     mbedtls_md_init(&mContext);
     
@@ -35,33 +40,45 @@ void HMACContext::init(const Crypto::Key& key)
                                    mbedtls_md_info_from_type(MBEDTLS_MD_SHA256),
                                    1);
 
-    assert(setupRc == 0);
+    if (setupRc != 0)
+    {
+        return false;
+    }
     
     int startsRc = mbedtls_md_hmac_starts(&mContext, key.begin(), key.size());
 
-    assert(startsRc == 0);
+    if (startsRc != 0)
+    {
+        mbedtls_md_free(&mContext);
+        return false;
+    }
 
     mContextInitialized = true;
+    return true;
 }
 
-void HMACContext::update(const DataRef& data)
+bool HMACContext::update(const DataRef& data)
 {
     int updateRc = mbedtls_md_hmac_update(&mContext, data.begin(), data.size());
 
-    assert(updateRc == 0);
+    return updateRc == 0;
 }
 
 Crypto::HMAC HMACContext::finish()
 {
     Crypto::HMAC hmac;
+    hmac.fill(0);
 
     int finishRc = mbedtls_md_hmac_finish(&mContext, hmac.begin());
-
-    assert(finishRc == 0);
     
     mbedtls_md_free(&mContext);
 
     mContextInitialized = false;
+
+    if (finishRc != 0)
+    {
+        hmac.fill(0);
+    }
         
     return hmac;
 }

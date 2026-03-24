@@ -15,6 +15,15 @@ class DataRef;
 class CryptoOutStream : public OutStream
 {
 public:
+    enum class State
+    {
+        kWriting       = 0,
+        kEncryptFailed = 1,
+        kHmacFailed    = 2,
+        kFlushed       = 3
+    };
+
+public:
     CryptoOutStream(OutStream&         outStream,
                     const StrRef&      password,
                     const Crypto::IV&  iv,
@@ -26,6 +35,8 @@ public:
         
 public:
     virtual std::size_t write(const DataRef& data) override;
+
+    State state() const;
 
 private:
     void writeHeader();
@@ -40,10 +51,17 @@ private:
     HMACContext                                mHMAC;
     std::array<uint8_t, Crypto::kAesBlockSize> mData;
     ArrayOutStream                             mDataOut;
+    State                                      mState;
         
 private:
     friend class SecureStorage;
 };
+
+inline
+CryptoOutStream::State CryptoOutStream::state() const
+{
+    return mState;
+}
 
 #endif
 

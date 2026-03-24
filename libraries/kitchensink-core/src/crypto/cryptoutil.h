@@ -18,17 +18,19 @@ Crypto::SHA256 sha256(const uint8_t* begin,
 Crypto::Key stretch(const StrRef&     password,
                     const Crypto::IV& iv);
 
-Crypto::IV encrypt(const Crypto::Key& key,
-                   const Crypto::IV&  iv,
-                   std::size_t        size,
-                   const uint8_t*     source,
-                   uint8_t*           dest);
+bool encrypt(const Crypto::Key& key,
+             const Crypto::IV&  iv,
+             std::size_t        size,
+             const uint8_t*     source,
+             uint8_t*           dest,
+             Crypto::IV&        nextIv);
 
-Crypto::IV decrypt(const Crypto::Key& key,
-                   const Crypto::IV&  iv,
-                   std::size_t        size,
-                   const uint8_t*     source,
-                   uint8_t*           dest);
+bool decrypt(const Crypto::Key& key,
+             const Crypto::IV&  iv,
+             std::size_t        size,
+             const uint8_t*     source,
+             uint8_t*           dest,
+             Crypto::IV&        nextIv);
 
 
 template <std::size_t Capacity>
@@ -41,30 +43,34 @@ Crypto::SHA256 sha256(const std::array<uint8_t, Capacity>& data)
 
 template <std::size_t Capacity>
 inline
-Crypto::IV encrypt(const Crypto::Key&                   key,
-                   const Crypto::IV&                    iv,
-                   const std::array<uint8_t, Capacity>& source,
-                   std::array<uint8_t, Capacity>&       dest)
+bool encrypt(const Crypto::Key&                   key,
+             const Crypto::IV&                    iv,
+             const std::array<uint8_t, Capacity>& source,
+             std::array<uint8_t, Capacity>&       dest,
+             Crypto::IV&                          nextIv)
 {
     return encrypt(key,
                    iv,
                    Capacity,
                    source.begin(),
-                   dest.begin());
+                   dest.begin(),
+                   nextIv);
 }
 
 template <std::size_t Capacity>
 inline
-Crypto::IV decrypt(const Crypto::Key&                   key,
-                   const Crypto::IV&                    iv,
-                   const std::array<uint8_t, Capacity>& source,
-                   std::array<uint8_t, Capacity>&       dest)
+bool decrypt(const Crypto::Key&                   key,
+             const Crypto::IV&                    iv,
+             const std::array<uint8_t, Capacity>& source,
+             std::array<uint8_t, Capacity>&       dest,
+             Crypto::IV&                          nextIv)
 {
     return decrypt(key,
                    iv,
                    Capacity,
                    source.begin(),
-                   dest.begin());
+                   dest.begin(),
+                   nextIv);
 }
 
 }

@@ -16,10 +16,14 @@ CryptoOutStream::CryptoOutStream(OutStream&         outStream,
     , mDataKey(dataKey)
     , mData()
     , mDataOut(mData)
+    , mState(State::kWriting)
 {
     writeHeader();
 
-    mHMAC.init(mDataKey);
+    if (mState == State::kWriting && !mHMAC.init(mDataKey))
+    {
+        mState = State::kHmacFailed;
+    }
 }
 
 CryptoOutStream::~CryptoOutStream()
@@ -37,10 +41,16 @@ void CryptoOutStream::writeHeader()
     
     std::array<uint8_t, sizeof(mDataIv) + sizeof(mDataKey)> dataIvKeyCrypt;
 
-    CryptoUtil::encrypt(key,
-                        mIv,
-                        dataIvKey,
-                        dataIvKeyCrypt);
+    Crypto::IV nextIv;
+    if (!CryptoUtil::encrypt(key,
+                             mIv,
+                             dataIvKey,
+                             dataIvKeyCrypt,
+                             nextIv))
+    {
+        mState = State::kEncryptFailed;
+        return;
+    }
     
     Crypto::HMAC dataIvKeyHmac(
         HMACContext::generate(key,
@@ -70,6 +80,11 @@ void CryptoOutStream::writeHeader()
 
 std::size_t CryptoOutStream::write(const DataRef& data)
 {
+    if (mState != State::kWriting)
+    {
+        return 0;
+    }
+
     auto currentData = data;
 
     while (currentData.size() > 0)
@@ -80,15 +95,24 @@ std::size_t CryptoOutStream::write(const DataRef& data)
         {
             std::array<uint8_t, Crypto::kAesBlockSize> cryptData;
             
-            mDataIv = CryptoUtil::encrypt(mDataKey,
-                                          mDataIv,
-                                          Crypto::kAesBlockSize,
-                                          mData.begin(),
-                                          cryptData.begin());
+            if (!CryptoUtil::encrypt(mDataKey,
+                                     mDataIv,
+                                     Crypto::kAesBlockSize,
+                                     mData.begin(),
+                                     cryptData.begin(),
+                                     mDataIv))
+            {
+                mState = State::kEncryptFailed;
+                return 0;
+            }
             
             auto cryptDataRef(DataRef(cryptData.begin(), cryptData.end()));
             
-            mHMAC.update(cryptDataRef);
+            if (!mHMAC.update(cryptDataRef))
+            {
+                mState = State::kHmacFailed;
+                return 0;
+            }
             mOutStream.write(cryptDataRef);
 
             mDataOut.reset();
@@ -102,21 +126,35 @@ std::size_t CryptoOutStream::write(const DataRef& data)
 
 void CryptoOutStream::flush()
 {
+    if (mState != State::kWriting)
+    {
+        return;
+    }
+
     auto blockOffset(mDataOut.position() % Crypto::kAesBlockSize);
 
     if (mDataOut.position() > 0)
     {
         std::array<uint8_t, Crypto::kAesBlockSize> cryptData;
         
-        mDataIv = CryptoUtil::encrypt(mDataKey,
-                                      mDataIv,
-                                      Crypto::kAesBlockSize,
-                                      mData.begin(),
-                                      cryptData.begin());
+        if (!CryptoUtil::encrypt(mDataKey,
+                                 mDataIv,
+                                 Crypto::kAesBlockSize,
+                                 mData.begin(),
+                                 cryptData.begin(),
+                                 mDataIv))
+        {
+            mState = State::kEncryptFailed;
+            return;
+        }
 
         auto cryptDataRef(DataRef(cryptData.begin(), cryptData.end()));
 
-        mHMAC.update(cryptDataRef);
+        if (!mHMAC.update(cryptDataRef))
+        {
+            mState = State::kHmacFailed;
+            return;
+        }
         mOutStream.write(cryptDataRef);
         
         mDataOut.reset();
@@ -127,23 +165,7 @@ void CryptoOutStream::flush()
     auto hmac(mHMAC.finish());
     
     mOutStream.write(hmac);
+
+    mState = State::kFlushed;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

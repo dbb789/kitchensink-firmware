@@ -17,8 +17,8 @@ public:
     ~HMACContext();
     
 public:
-    void init(const Crypto::Key& key);
-    void update(const DataRef& data);
+    bool init(const Crypto::Key& key);
+    bool update(const DataRef& data);
     Crypto::HMAC finish();
     
 private:

@@ -4,7 +4,6 @@
 #include "types/strbuf.h"
 #include "config.h"
 
-#include <cassert>
 #include <mbedTLS_AES.h>
 #include <mbedTLS_SHA256.h>
 #include <mbedTLS_MD.h>
@@ -66,20 +65,25 @@ Crypto::Key stretch(const StrRef&     password,
     return digest;
 }
 
-Crypto::IV encrypt(const Crypto::Key& key,
-                   const Crypto::IV&  iv,
-                   std::size_t        size,
-                   const uint8_t*     source,
-                   uint8_t*           dest)
+bool encrypt(const Crypto::Key& key,
+             const Crypto::IV&  iv,
+             std::size_t        size,
+             const uint8_t*     source,
+             uint8_t*           dest,
+             Crypto::IV&        nextIv)
 {
-    auto nextIv(iv);
+    nextIv = iv;
     mbedtls_aes_context ctx;
     
     mbedtls_aes_init(&ctx);
     
     int encRc = mbedtls_aes_setkey_enc(&ctx, key.begin(), 256);
 
-    assert(encRc == 0);
+    if (encRc != 0)
+    {
+        mbedtls_aes_free(&ctx);
+        return false;
+    }
     
     int cbcRc = mbedtls_aes_crypt_cbc(&ctx,
                                       MBEDTLS_AES_ENCRYPT,
@@ -88,27 +92,30 @@ Crypto::IV encrypt(const Crypto::Key& key,
                                       source,
                                       dest);
 
-    assert(cbcRc == 0);
-    
     mbedtls_aes_free(&ctx);
 
-    return nextIv;
+    return cbcRc == 0;
 }
 
-Crypto::IV decrypt(const Crypto::Key& key,
-                   const Crypto::IV&  iv,
-                   std::size_t        size,
-                   const uint8_t*     source,
-                   uint8_t*           dest)
+bool decrypt(const Crypto::Key& key,
+             const Crypto::IV&  iv,
+             std::size_t        size,
+             const uint8_t*     source,
+             uint8_t*           dest,
+             Crypto::IV&        nextIv)
 {
-    auto nextIv(iv);
+    nextIv = iv;
     mbedtls_aes_context ctx;
     
     mbedtls_aes_init(&ctx);
 
     int decRc = mbedtls_aes_setkey_dec(&ctx, key.begin(), 256);
 
-    assert(decRc == 0);
+    if (decRc != 0)
+    {
+        mbedtls_aes_free(&ctx);
+        return false;
+    }
     
     int cbcRc = mbedtls_aes_crypt_cbc(&ctx,
                                       MBEDTLS_AES_DECRYPT,
@@ -117,11 +124,9 @@ Crypto::IV decrypt(const Crypto::Key& key,
                                       source,
                                       dest);
 
-    assert(cbcRc == 0);
-    
     mbedtls_aes_free(&ctx);
 
-    return nextIv;
+    return cbcRc == 0;
 }
 
 }

@@ -459,3 +459,104 @@ TEST(Crypto, AesCryptBadDataHmac)
 
     ASSERT_EQ(cryptIn.state(), CryptoInStream::State::kBadDataHmac);
 }
+
+// ---- CryptoInStream header/version/reserved error states ----
+
+TEST(Crypto, InStreamBadHeader)
+{
+    // Magic bytes are not "AES".
+    const uint8_t raw[] = { 0x41, 0x45, 0x54 };   // "AET"
+    DataRefInStream is(DataRef(raw, raw + sizeof(raw)));
+    CryptoInStream cis(is, "test");
+    ASSERT_EQ(cis.state(), CryptoInStream::State::kBadHeader);
+}
+
+TEST(Crypto, InStreamBadVersion)
+{
+    // Magic "AES" followed by version 0x01 instead of 0x02.
+    const uint8_t raw[] = { 0x41, 0x45, 0x53, 0x01 };
+    DataRefInStream is(DataRef(raw, raw + sizeof(raw)));
+    CryptoInStream cis(is, "test");
+    ASSERT_EQ(cis.state(), CryptoInStream::State::kBadVersion);
+}
+
+TEST(Crypto, InStreamCorrupted)
+{
+    // Magic + version correct, but reserved byte is non-zero.
+    const uint8_t raw[] = { 0x41, 0x45, 0x53, 0x02, 0x01 };
+    DataRefInStream is(DataRef(raw, raw + sizeof(raw)));
+    CryptoInStream cis(is, "test");
+    ASSERT_EQ(cis.state(), CryptoInStream::State::kCorrupted);
+}
+
+// ---- CryptoOutStream state machine ----
+
+TEST(Crypto, OutStreamInitialState)
+{
+    srand(42);
+
+    Crypto::IV iv, dataIv;
+    Crypto::Key dataKey;
+    for (auto& x : iv)     x = uint8_t(rand() & 0xff);
+    for (auto& x : dataIv)  x = uint8_t(rand() & 0xff);
+    for (auto& x : dataKey) x = uint8_t(rand() & 0xff);
+
+    std::array<uint8_t, 1024> encryptedData;
+    ArrayOutStream encryptedOut(encryptedData);
+
+    CryptoOutStream cryptOut(encryptedOut, "test", iv, dataIv, dataKey);
+
+    ASSERT_EQ(cryptOut.state(), CryptoOutStream::State::kWriting);
+
+    const uint8_t payload[] = { 'A', 'B', 'C' };
+    cryptOut.write(DataRef(payload, payload + sizeof(payload)));
+
+    // State should still be kWriting until the stream is flushed (on destruction).
+    ASSERT_EQ(cryptOut.state(), CryptoOutStream::State::kWriting);
+}
+
+// ---- Boundary payload sizes (roundtrip) ----
+
+TEST(Crypto, OneByte)
+{
+    // Minimum non-empty payload: one partial block.
+    const uint8_t raw[] = { 0xAB };
+    DataRef testData(raw, raw + sizeof(raw));
+    sanityCheck(testData, "test", 1001);
+}
+
+TEST(Crypto, FifteenBytes)
+{
+    // Largest payload that fits in exactly one partial block.
+    const uint8_t raw[] = {
+        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+        0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e
+    };
+    DataRef testData(raw, raw + sizeof(raw));
+    sanityCheck(testData, "test", 1002);
+}
+
+TEST(Crypto, SeventeenBytes)
+{
+    // One full block from write(), plus one partial block from flush().
+    const uint8_t raw[] = {
+        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+        0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+        0x10
+    };
+    DataRef testData(raw, raw + sizeof(raw));
+    sanityCheck(testData, "test", 1003);
+}
+
+TEST(Crypto, ThirtyTwoBytes)
+{
+    // Exactly two full blocks, nothing left for flush().
+    const uint8_t raw[] = {
+        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+        0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+        0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
+        0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f
+    };
+    DataRef testData(raw, raw + sizeof(raw));
+    sanityCheck(testData, "test", 1004);
+}
