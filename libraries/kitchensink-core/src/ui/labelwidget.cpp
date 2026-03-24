@@ -30,17 +30,23 @@ void LabelWidget::setFocused(bool focused)
 void LabelWidget::render(const RasterLine& rasterLine, int row)
 {
     auto size(widgetSize());
-    
     auto xOffset(0);
+    auto textSize(Font::kWidth * text.length());
     
     switch (justify)
     {
     case Justify::kRight:
-        xOffset = size.width - (Font::kWidth * text.length());
+        if (textSize < size.width)
+        {
+            xOffset = size.width - textSize;
+        }
         break;
         
     case Justify::kCenter:
-        xOffset = (size.width - (Font::kWidth * text.length())) / 2;
+        if (textSize < size.width)
+        {
+            xOffset = (size.width - textSize) / 2;
+        }
         break;
         
     default:
