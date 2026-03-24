@@ -31,10 +31,15 @@ void ButtonWidget::render(const RasterLine& rasterLine, int row)
 {
     auto size(widgetSize());
 
-    auto xOffset((size.width - (Font::kWidth * text.length())) / 2);
-
+    auto xOffset(0);
     auto yOffset(0);
-
+    auto textWidth(Font::kWidth * text.length());
+    
+    if (textWidth < size.width)
+    {
+        xOffset = (size.width - textWidth) / 2;
+    }
+    
     if (Font::kHeight < size.height)
     {
         yOffset = (size.height - Font::kHeight) / 2;
