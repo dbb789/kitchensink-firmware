@@ -4,9 +4,13 @@
 #include "types/strbuf.h"
 #include "config.h"
 
-#include <mbedTLS_AES.h>
-#include <mbedTLS_SHA256.h>
-#include <mbedTLS_MD.h>
+//#include <mbedtls/private/aes.h>
+//#include <mbedtls/private/sha256.h>
+
+#include <mbedtls/aes.h>
+#include <mbedtls/sha256.h>
+
+#include <mbedtls/md.h>
 
 namespace CryptoUtil
 {

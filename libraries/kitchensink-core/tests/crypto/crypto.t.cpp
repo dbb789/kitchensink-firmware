@@ -11,7 +11,7 @@
 #include <ostream>
 
 static void PrintTo(const DataRef& dataRef,
-             std::ostream*  os)
+                    std::ostream*  os)
 {
     *os << "Size=" << dataRef.size() << " ";
     

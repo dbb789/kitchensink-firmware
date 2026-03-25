@@ -4,7 +4,7 @@
 #include "crypto/cryptotypes.h"
 #include "types/dataref.h"
 
-#include <mbedTLS_MD.h>
+#include <mbedtls/md.h>
 
 class HMACContext
 {

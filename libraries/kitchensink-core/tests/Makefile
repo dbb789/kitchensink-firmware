@@ -3,10 +3,12 @@ CC = clang
 CPP = clang++
 ARDUINO_LIBRARIES ?= $(HOME)/Arduino
 INCLUDES = -I. -I../src -I$(ARDUINO_LIBRARIES)/libraries/kitchensink-mbedtls/src
+#INCLUDES = -I. -I../src -I$(ARDUINO_LIBRARIES)/libraries/kitchensink-tf-psa-crypto/src
 C_FLAGS = -g -Wall $(INCLUDES)
 CPP_FLAGS = -g -std=gnu++14 -Wall -fsanitize=address -DKS_PASSWORD_SUFFIX=\"_kitchenSink\" $(INCLUDES)
 LD_FLAGS = -fsanitize=address
 C_FILES = $(wildcard $(ARDUINO_LIBRARIES)/libraries/kitchensink-mbedtls/src/*.c)
+#C_FILES = $(wildcard $(ARDUINO_LIBRARIES)/libraries/kitchensink-tf-psa-crypto/src/*.c)
 CPP_FILES = $(wildcard */*.cpp) $(wildcard ../src/types/*.cpp) $(wildcard ../src/crypto/*.cpp) \
             $(wildcard ../src/data/*.cpp) \
             $(wildcard ../src/event/*.cpp) \
