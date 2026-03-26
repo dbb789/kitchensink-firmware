@@ -83,8 +83,8 @@ TEST(HMACContext, MultiUpdate_0)
     HMACContext ctx;
 
     ASSERT_TRUE(ctx.init(key));
-    ASSERT_TRUE(ctx.update(DataRef("Hello, ")));
-    ASSERT_TRUE(ctx.update(DataRef("World!")));
+    ASSERT_TRUE(ctx.update("Hello, "));
+    ASSERT_TRUE(ctx.update("World!"));
 
     Crypto::HMAC hmac;
 
@@ -104,9 +104,9 @@ TEST(HMACContext, MultiUpdate_1)
     HMACContext ctx;
 
     ASSERT_TRUE(ctx.init(key));
-    ASSERT_TRUE(ctx.update(DataRef("abc")));
-    ASSERT_TRUE(ctx.update(DataRef("def")));
-    ASSERT_TRUE(ctx.update(DataRef("ghi")));
+    ASSERT_TRUE(ctx.update("abc"));
+    ASSERT_TRUE(ctx.update("def"));
+    ASSERT_TRUE(ctx.update("ghi"));
 
     Crypto::HMAC hmac;
 
