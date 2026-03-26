@@ -4,7 +4,7 @@
 #include "crypto/cryptotypes.h"
 #include "types/dataref.h"
 
-#include <psa/crypto.h>
+#include <PSA_Crypto.h>
 
 class HMACContext
 {

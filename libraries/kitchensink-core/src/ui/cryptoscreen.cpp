@@ -1,10 +1,12 @@
 #include "ui/cryptoscreen.h"
 
+#define MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
+#include <mbedtls/private/aes.h>
+#include <mbedtls/private/sha256.h>
+#undef MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
+
 #include "types/stroutstream.h"
 #include "crypto/entropypool.h"
-
-#include <mbedTLS_AES.h>
-#include <mbedTLS_SHA256.h>
 
 CryptoScreen::CryptoScreen(TimerManager&       timer,
                            EntropyPool& entropyPool)

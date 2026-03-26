@@ -4,14 +4,18 @@
 #include "types/strbuf.h"
 #include "config.h"
 
-#define MBEDTLS_ALLOW_PRIVATE_ACCESS
-#include <mbedtls/private/aes.h>
-#include <mbedtls/private/sha256.h>
-#undef MBEDTLS_ALLOW_PRIVATE_ACCESS
+#include <PSA_Crypto.h>
 
-#include <psa/crypto.h>
+#include <string.h>
 
-#include <mbedtls/md.h>
+extern "C"
+{
+psa_status_t mbedtls_psa_external_get_random(mbedtls_psa_external_random_context_t *context,
+                                             uint8_t *output, size_t output_size, size_t *output_length)
+{
+    return PSA_ERROR_NOT_SUPPORTED;
+}
+}
 
 namespace CryptoUtil
 {
@@ -29,7 +33,7 @@ void initializeLibrary()
     {
         if (psa_crypto_init() != PSA_SUCCESS)
         {
-            throw std::runtime_error("Failed to initialize PSA Crypto library");
+            std::terminate();
         }
         
         psaCryptoInitialized = true;
@@ -111,29 +115,60 @@ bool encrypt(const Crypto::Key& key,
              uint8_t*           dest,
              Crypto::IV&        nextIv)
 {
-    nextIv = iv;
-    mbedtls_aes_context ctx;
-    
-    mbedtls_aes_init(&ctx);
-    
-    int encRc = mbedtls_aes_setkey_enc(&ctx, key.begin(), 256);
+    initializeLibrary();
 
-    if (encRc != 0)
+    mbedtls_svc_key_id_t keyId = MBEDTLS_SVC_KEY_ID_INIT;
+
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_ENCRYPT);
+    psa_set_key_algorithm(&attributes, PSA_ALG_CBC_NO_PADDING);
+    psa_set_key_bits(&attributes, PSA_BYTES_TO_BITS(key.size()));
+
+    if (psa_import_key(&attributes, key.data(), key.size(), &keyId) != PSA_SUCCESS)
     {
-        mbedtls_aes_free(&ctx);
         return false;
     }
-    
-    int cbcRc = mbedtls_aes_crypt_cbc(&ctx,
-                                      MBEDTLS_AES_ENCRYPT,
-                                      size,
-                                      nextIv.begin(),
-                                      source,
-                                      dest);
 
-    mbedtls_aes_free(&ctx);
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
 
-    return cbcRc == 0;
+    if (psa_cipher_encrypt_setup(&operation, keyId, PSA_ALG_CBC_NO_PADDING) != PSA_SUCCESS)
+    {
+        psa_destroy_key(keyId);
+        return false;
+    }
+
+    if (psa_cipher_set_iv(&operation, iv.data(), iv.size()) != PSA_SUCCESS)
+    {
+        psa_cipher_abort(&operation);
+        psa_destroy_key(keyId);
+        return false;
+    }
+
+    size_t outputLength = 0;
+
+    if (psa_cipher_update(&operation, source, size, dest, size, &outputLength) != PSA_SUCCESS)
+    {
+        psa_cipher_abort(&operation);
+        psa_destroy_key(keyId);
+        return false;
+    }
+
+    size_t finishLength = 0;
+
+    if (psa_cipher_finish(&operation, dest + outputLength, size - outputLength, &finishLength) != PSA_SUCCESS)
+    {
+        psa_cipher_abort(&operation);
+        psa_destroy_key(keyId);
+        return false;
+    }
+
+    psa_destroy_key(keyId);
+
+    // Update nextIv to the last ciphertext block for CBC chaining.
+    std::copy(dest + size - Crypto::kAesBlockSize, dest + size, nextIv.begin());
+
+    return true;
 }
 
 bool decrypt(const Crypto::Key& key,
@@ -143,29 +178,60 @@ bool decrypt(const Crypto::Key& key,
              uint8_t*           dest,
              Crypto::IV&        nextIv)
 {
-    nextIv = iv;
-    mbedtls_aes_context ctx;
-    
-    mbedtls_aes_init(&ctx);
+    initializeLibrary();
 
-    int decRc = mbedtls_aes_setkey_dec(&ctx, key.begin(), 256);
+    mbedtls_svc_key_id_t keyId = MBEDTLS_SVC_KEY_ID_INIT;
 
-    if (decRc != 0)
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
+    psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_DECRYPT);
+    psa_set_key_algorithm(&attributes, PSA_ALG_CBC_NO_PADDING);
+    psa_set_key_bits(&attributes, PSA_BYTES_TO_BITS(key.size()));
+
+    if (psa_import_key(&attributes, key.data(), key.size(), &keyId) != PSA_SUCCESS)
     {
-        mbedtls_aes_free(&ctx);
         return false;
     }
-    
-    int cbcRc = mbedtls_aes_crypt_cbc(&ctx,
-                                      MBEDTLS_AES_DECRYPT,
-                                      size,
-                                      nextIv.begin(),
-                                      source,
-                                      dest);
 
-    mbedtls_aes_free(&ctx);
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
 
-    return cbcRc == 0;
+    if (psa_cipher_decrypt_setup(&operation, keyId, PSA_ALG_CBC_NO_PADDING) != PSA_SUCCESS)
+    {
+        psa_destroy_key(keyId);
+        return false;
+    }
+
+    if (psa_cipher_set_iv(&operation, iv.data(), iv.size()) != PSA_SUCCESS)
+    {
+        psa_cipher_abort(&operation);
+        psa_destroy_key(keyId);
+        return false;
+    }
+
+    size_t outputLength = 0;
+
+    if (psa_cipher_update(&operation, source, size, dest, size, &outputLength) != PSA_SUCCESS)
+    {
+        psa_cipher_abort(&operation);
+        psa_destroy_key(keyId);
+        return false;
+    }
+
+    size_t finishLength = 0;
+
+    if (psa_cipher_finish(&operation, dest + outputLength, size - outputLength, &finishLength) != PSA_SUCCESS)
+    {
+        psa_cipher_abort(&operation);
+        psa_destroy_key(keyId);
+        return false;
+    }
+
+    psa_destroy_key(keyId);
+
+    // Update nextIv to the last ciphertext block for CBC chaining.
+    std::copy(source + size - Crypto::kAesBlockSize, source + size, nextIv.begin());
+
+    return true;
 }
 
 }
