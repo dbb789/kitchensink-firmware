@@ -174,7 +174,13 @@ void CryptoOutStream::flush()
     
     mOutStream.write(uint8_t(blockOffset));
 
-    auto hmac(mHMAC.finish());
+    Crypto::HMAC hmac;
+
+    if (!mHMAC.finish(hmac))
+    {
+        mState = State::kInternalError;
+        return;
+    }
     
     mOutStream.write(hmac);
 

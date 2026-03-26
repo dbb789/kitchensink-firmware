@@ -63,6 +63,8 @@ bool stretch(const StrRef&     password,
              const Crypto::IV& iv,
              Crypto::Key&      digest)
 {
+    initializeLibrary();
+    
     digest.fill(0);
 
     std::copy(iv.begin(), iv.end(), digest.begin());
@@ -87,16 +89,16 @@ bool stretch(const StrRef&     password,
     // 8192 rounds of SHA256 on the IV and password as per AESCrypt.
     for (int i(0); i < 8192; ++i)
     {
-        mbedtls_sha256_context ctx;
+        psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
+
+        psa_hash_setup(&operation, PSA_ALG_SHA_256);
+
+        psa_hash_update(&operation, digest.begin(), digest.size());
+        psa_hash_update(&operation, pwdUtf16.begin(), pwdUtf16Len);
+
+        size_t outputLen(0);
         
-        mbedtls_sha256_init(&ctx);
-        mbedtls_sha256_starts(&ctx, 0);
-        mbedtls_sha256_update(&ctx, digest.begin(), digest.size());
-        mbedtls_sha256_update(&ctx,
-                              pwdUtf16.begin(),
-                              pwdUtf16Len);
-        mbedtls_sha256_finish(&ctx, digest.begin());
-        mbedtls_sha256_free(&ctx);
+        psa_hash_finish(&operation, digest.begin(), digest.size(), &outputLen);
     }
 
     return true;

@@ -8,25 +8,23 @@ bool HMACContext::generate(const Crypto::Key& key,
 {
     HMACContext context;
 
-    if (!context.init(key) || !context.update(data))
+    if (!context.init(key) || !context.update(data) || !context.finish(hmac))
     {
         return false;
     }
-    
-    hmac = context.finish();
     
     return true;
 }
 
 HMACContext::HMACContext()
-    : mContextInitialized(false)
+    : mState(State::kUninitialized)
     , mOperation(PSA_MAC_OPERATION_INIT)
     , mKeyId(MBEDTLS_SVC_KEY_ID_INIT)
 { }
 
 HMACContext::~HMACContext()
 {
-    if (mContextInitialized)
+    if (mState != State::kUninitialized && mState != State::kFinished)
     {
         psa_mac_abort(&mOperation);
         psa_destroy_key(mKeyId);
@@ -35,7 +33,7 @@ HMACContext::~HMACContext()
 
 bool HMACContext::init(const Crypto::Key& key)
 {
-    if (mContextInitialized)
+    if (mState != State::kUninitialized)
     {
         return false;
     }
@@ -51,6 +49,8 @@ bool HMACContext::init(const Crypto::Key& key)
 
     if (psa_import_key(&attributes, key.data(), key.size(), &mKeyId) != PSA_SUCCESS)
     {
+        mState = State::kUninitialized;
+        
         return false;
     }
 
@@ -58,39 +58,56 @@ bool HMACContext::init(const Crypto::Key& key)
     {
         psa_destroy_key(mKeyId);
         mKeyId = MBEDTLS_SVC_KEY_ID_INIT;
+        
+        mState = State::kUninitialized;
+        
         return false;
     }
 
-    mContextInitialized = true;
+    mState = State::kInitialized;
+    
     return true;
 }
 
 bool HMACContext::update(const DataRef& data)
 {
-    return psa_mac_update(&mOperation, data.begin(), data.size()) == PSA_SUCCESS;
+    if (mState != State::kInitialized)
+    {
+        return false;
+    }
+    
+    if (psa_mac_update(&mOperation, data.begin(), data.size()) != PSA_SUCCESS)
+    {
+        mState = State::kInternalError;
+        
+        return false;
+    }
+
+    return true;
 }
 
-Crypto::HMAC HMACContext::finish()
+bool HMACContext::finish(Crypto::HMAC& hmac)
 {
-    Crypto::HMAC hmac;
+    if (mState != State::kInitialized)
+    {
+        return false;
+    }
+    
     hmac.fill(0);
 
     size_t macLength = 0;
-    psa_status_t status = psa_mac_sign_finish(&mOperation,
-                                              hmac.data(),
-                                              hmac.size(),
-                                              &macLength);
-
-    psa_mac_abort(&mOperation);
-    psa_destroy_key(mKeyId);
-    mKeyId = MBEDTLS_SVC_KEY_ID_INIT;
-    mContextInitialized = false;
-
-    if (status != PSA_SUCCESS)
+    
+    if (psa_mac_sign_finish(&mOperation,
+                            hmac.data(),
+                            hmac.size(),
+                            &macLength) != PSA_SUCCESS)
     {
+        mState = State::kInternalError;
         hmac.fill(0);
+
+        return false;
     }
         
-    return hmac;
+    return true;
 }
 

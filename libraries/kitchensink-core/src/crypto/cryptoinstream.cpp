@@ -172,6 +172,7 @@ void CryptoInStream::readHeader()
     std::array<uint8_t, Crypto::kAesBlockSize + Crypto::kAesKeyLen> dataIvKey;
 
     Crypto::IV nextIv;
+    
     if (!CryptoUtil::decrypt(key,
                              iv,
                              dataIvKeyCrypt,
@@ -186,7 +187,7 @@ void CryptoInStream::readHeader()
 
     if (!mHMAC.init(mDataKey))
     {
-        mState = State::kCorrupted;
+        mState = State::kInternalError;
         return;
     }
 }
@@ -219,7 +220,7 @@ bool CryptoInStream::readBlock()
 
     if (!mHMAC.update(DataRef(inBlock.begin(), inBlock.end())))
     {
-        mState = State::kCorrupted;
+        mState = State::kInternalError;
         return false;
     }
     
@@ -263,7 +264,13 @@ bool CryptoInStream::readBlock()
                   suffix.begin() + SuffixLen,
                   dataHmac.begin());
 
-        auto expectedHmac(mHMAC.finish());
+        Crypto::HMAC expectedHmac;
+        
+        if (!mHMAC.finish(expectedHmac))
+        {
+            mState = State::kInternalError;
+            return false;
+        }
 
         if (dataHmac != expectedHmac)
         {
