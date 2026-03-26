@@ -25,18 +25,6 @@ TEST(DataRef, FromCString)
     ASSERT_EQ(d[3], 't');
 }
 
-TEST(DataRef, FromStrRef)
-{
-    DataRef d(StrRef("hello"));
-
-    ASSERT_EQ(d.size(), 5);
-    ASSERT_EQ(d[0], 'h');
-    ASSERT_EQ(d[1], 'e');
-    ASSERT_EQ(d[2], 'l');
-    ASSERT_EQ(d[3], 'l');
-    ASSERT_EQ(d[4], 'o');
-}
-
 TEST(DataRef, FromOctet)
 {
     DataRef d(uint8_t(0xAB));

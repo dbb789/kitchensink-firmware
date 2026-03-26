@@ -7,7 +7,7 @@
 
 TEST(StrInStream, Simple)
 {
-    const char* TestStr = "ABC\nDEF\n\nGHI";
+    const char TestStr[] = "ABC\nDEF\n\nGHI";
 
     DataRefInStream is(TestStr);
     StrInStream sis(is);

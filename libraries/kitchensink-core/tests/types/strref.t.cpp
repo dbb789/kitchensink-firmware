@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "types/strref.h"
+#include "types/dataref.h"
 
 TEST(StrRef, Empty)
 {
@@ -37,7 +38,6 @@ TEST(StrRef, Simple)
     
     ASSERT_EQ(it, str.end());
 }
-
 
 TEST(StrRef, Substr)
 {
@@ -155,3 +155,16 @@ TEST(StrRef, TrimAll)
     ASSERT_EQ(str.trim(), "");
 }
 
+TEST(StrRef, ToDataRef)
+{
+    StrRef str("test");
+    DataRef data(str);
+    
+    ASSERT_EQ(data.size(), 4);
+    ASSERT_EQ(data[0], 't');
+    ASSERT_EQ(data[1], 'e');
+    ASSERT_EQ(data[2], 's');
+    ASSERT_EQ(data[3], 't');
+
+    ASSERT_EQ(data, DataRef("test"));
+}
