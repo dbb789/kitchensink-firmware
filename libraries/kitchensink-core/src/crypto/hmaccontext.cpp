@@ -107,7 +107,9 @@ bool HMACContext::finish(Crypto::HMAC& hmac)
 
         return false;
     }
-        
+
+    mState = State::kFinished;
+
     return true;
 }
 
