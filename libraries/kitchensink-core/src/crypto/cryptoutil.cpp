@@ -36,14 +36,25 @@ void initializeLibrary()
     }
 }
 
-Crypto::SHA256 sha256(const uint8_t* begin,
-                      const uint8_t* end)
+bool sha256(const uint8_t*  begin,
+            const uint8_t*  end,
+            Crypto::SHA256& hash)
 {
-    Crypto::SHA256 output;
-
-    mbedtls_sha256(begin, end - begin, output.begin(), 0);
-
-    return output;
+    size_t hashLength(0);
+    
+    if (psa_hash_compute(PSA_ALG_SHA_256,
+                         begin,
+                         end - begin,
+                         hash.data(),
+                         hash.size(),
+                         &hashLength) != PSA_SUCCESS)
+    {
+        hash.fill(0);
+        
+        return false;
+    }
+    
+    return true;
 }
 
 Crypto::Key stretch(const StrRef&     password,

@@ -14,8 +14,9 @@ namespace CryptoUtil
 
 void initializeLibrary();
 
-Crypto::SHA256 sha256(const uint8_t* begin,
-                      const uint8_t* end);
+bool sha256(const uint8_t*  begin,
+            const uint8_t*  end,
+            Crypto::SHA256& hash);
 
 Crypto::Key stretch(const StrRef&     password,
                     const Crypto::IV& iv);
@@ -37,10 +38,12 @@ bool decrypt(const Crypto::Key& key,
 
 template <std::size_t Capacity>
 inline
-Crypto::SHA256 sha256(const std::array<uint8_t, Capacity>& data)
+bool sha256(const std::array<uint8_t, Capacity>& data,
+            Crypto::SHA256&                      hash)
 {
     return sha256(data.begin(),
-                  data.end());
+                  data.end(),
+                  hash);
 }
 
 template <std::size_t Capacity>

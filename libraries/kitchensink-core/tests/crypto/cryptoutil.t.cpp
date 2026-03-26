@@ -15,7 +15,9 @@ TEST(CryptoUtil, SHA256_0)
     std::vector<uint8_t> expectedHash;
     TestUtil::hexToVector("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", expectedHash);
 
-    auto hash = CryptoUtil::sha256(testData.begin(), testData.end());
+    Crypto::SHA256 hash;
+
+    ASSERT_TRUE(CryptoUtil::sha256(testData.begin(), testData.end(), hash));
 
     ASSERT_EQ(DataRef(hash.data(), hash.data() + hash.size()),
               DataRef(expectedHash.data(), expectedHash.data() + expectedHash.size()));
@@ -28,7 +30,9 @@ TEST(CryptoUtil, SHA256_1)
     std::vector<uint8_t> expectedHash;
     TestUtil::hexToVector("5f3ee7c36a7d138e853198112b7ed0157cf72ce9cd83e65aef31233754e0df9e", expectedHash);
 
-    auto hash = CryptoUtil::sha256(testData.begin(), testData.end());
+    Crypto::SHA256 hash;
+
+    ASSERT_TRUE(CryptoUtil::sha256(testData.begin(), testData.end(), hash));
 
     ASSERT_EQ(DataRef(hash.data(), hash.data() + hash.size()),
               DataRef(expectedHash.data(), expectedHash.data() + expectedHash.size()));
@@ -41,7 +45,9 @@ TEST(CryptoUtil, SHA256_2)
     std::vector<uint8_t> expectedHash;
     TestUtil::hexToVector("4ebdb42d13c6a69f215aafa30ee6aa9f491cf052516455ab7e3ba15095027259", expectedHash);
 
-    auto hash = CryptoUtil::sha256(testData.begin(), testData.end());
+    Crypto::SHA256 hash;
+
+    ASSERT_TRUE(CryptoUtil::sha256(testData.begin(), testData.end(), hash));
 
     ASSERT_EQ(DataRef(hash.data(), hash.data() + hash.size()),
               DataRef(expectedHash.data(), expectedHash.data() + expectedHash.size()));
