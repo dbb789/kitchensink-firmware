@@ -40,6 +40,8 @@ bool sha256(const uint8_t*  begin,
             const uint8_t*  end,
             Crypto::SHA256& hash)
 {
+    initializeLibrary();
+    
     size_t hashLength(0);
     
     if (psa_hash_compute(PSA_ALG_SHA_256,
