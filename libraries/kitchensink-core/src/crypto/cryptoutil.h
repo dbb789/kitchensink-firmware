@@ -18,8 +18,9 @@ bool sha256(const uint8_t*  begin,
             const uint8_t*  end,
             Crypto::SHA256& hash);
 
-Crypto::Key stretch(const StrRef&     password,
-                    const Crypto::IV& iv);
+bool stretch(const StrRef&     password,
+             const Crypto::IV& iv,
+             Crypto::Key&      digest);
 
 bool encrypt(const Crypto::Key& key,
              const Crypto::IV&  iv,

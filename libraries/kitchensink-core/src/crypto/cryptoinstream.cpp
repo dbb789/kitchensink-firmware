@@ -144,8 +144,13 @@ void CryptoInStream::readHeader()
     }
 
     // Verify HMAC
+    Crypto::Key key;
     
-    auto key(CryptoUtil::stretch(mPassword, iv));
+    if (!CryptoUtil::stretch(mPassword, iv, key))
+    {
+        mState = State::kInternalError;
+        return;
+    }
 
     Crypto::HMAC expectedDataIvKeyHmac;
 

@@ -33,8 +33,14 @@ CryptoOutStream::~CryptoOutStream()
 
 void CryptoOutStream::writeHeader()
 {
-    auto key(CryptoUtil::stretch(mPassword, mIv));
-        
+    Crypto::Key key;
+    
+    if (!CryptoUtil::stretch(mPassword, mIv, key))
+    {
+        mState = State::kInternalError;
+        return;
+    }
+
     std::array<uint8_t, sizeof(mDataIv) + sizeof(mDataKey)> dataIvKey;
 
     ArrayUtil<decltype(dataIvKey)>::join(mDataIv, mDataKey, dataIvKey);
@@ -51,7 +57,7 @@ void CryptoOutStream::writeHeader()
         mState = State::kInternalError;
         return;
     }
-    
+
     Crypto::HMAC dataIvKeyHmac;
     
     if (!HMACContext::generate(key,

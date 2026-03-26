@@ -59,11 +59,10 @@ bool sha256(const uint8_t*  begin,
     return true;
 }
 
-Crypto::Key stretch(const StrRef&     password,
-                    const Crypto::IV& iv)
+bool stretch(const StrRef&     password,
+             const Crypto::IV& iv,
+             Crypto::Key&      digest)
 {
-    Crypto::Key digest;
-
     digest.fill(0);
 
     std::copy(iv.begin(), iv.end(), digest.begin());
@@ -100,7 +99,7 @@ Crypto::Key stretch(const StrRef&     password,
         mbedtls_sha256_free(&ctx);
     }
 
-    return digest;
+    return true;
 }
 
 bool encrypt(const Crypto::Key& key,
