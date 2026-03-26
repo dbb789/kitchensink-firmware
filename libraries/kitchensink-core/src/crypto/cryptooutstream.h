@@ -25,6 +25,7 @@ public:
 public:
     CryptoOutStream(OutStream&         outStream,
                     const StrRef&      password,
+                    const StrRef&      suffix,
                     const Crypto::IV&  iv,
                     const Crypto::IV&  dataIv,
                     const Crypto::Key& dataKey);
@@ -44,6 +45,7 @@ private:
 private:
     OutStream&                                 mOutStream;
     StrRef                                     mPassword;
+    StrRef                                     mSuffix;
     Crypto::IV                                 mIv;
     Crypto::IV                                 mDataIv;
     Crypto::Key                                mDataKey;

@@ -31,7 +31,8 @@ public:
     
 public:
     CryptoInStream(InStream&     inStream,
-                   const StrRef& password);
+                   const StrRef& password,
+                   const StrRef& suffix);
 
 public:
     virtual ~CryptoInStream() = default;
@@ -48,6 +49,7 @@ private:
 private:
     InStream&                                 mInStream;
     StrRef                                    mPassword;
+    StrRef                                    mSuffix;
     Crypto::Key                               mDataKey;
     Crypto::IV                                mDataIv;
     HMACContext                               mHMAC;

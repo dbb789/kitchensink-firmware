@@ -6,9 +6,11 @@
 #include "types/arrayoutstream.h"
 
 CryptoInStream::CryptoInStream(InStream&     inStream,
-                               const StrRef& password)
+                               const StrRef& password,
+                               const StrRef& suffix)
     : mInStream(inStream)
     , mPassword(password)
+    , mSuffix(suffix)
     , mState(State::kReading)
 {
     readHeader();
@@ -146,7 +148,7 @@ void CryptoInStream::readHeader()
     // Verify HMAC
     Crypto::Key key;
     
-    if (!CryptoUtil::stretch(mPassword, iv, key))
+    if (!CryptoUtil::stretch(mPassword, mSuffix, iv, key))
     {
         mState = State::kInternalError;
         return;

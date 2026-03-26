@@ -87,7 +87,7 @@ StorageResult load(SecureMacroSet& secureMacroSet,
 
     auto is(storage.read(Storage::Region::kSecureMacro));
     
-    CryptoInStream cryptoIn(is, password);
+    CryptoInStream cryptoIn(is, password, Config::kPasswordSuffix);
 
     if (cryptoIn.state() != CryptoInStream::State::kReading)
     {
@@ -207,6 +207,7 @@ StorageResult store(const SecureMacroSet& secureMacroSet,
         
         CryptoOutStream os(output,
                            secureMacroSet.password,
+                           Config::kPasswordSuffix,
                            iv,
                            dataIv,
                            dataKey);

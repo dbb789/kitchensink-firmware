@@ -6,11 +6,13 @@
 
 CryptoOutStream::CryptoOutStream(OutStream&         outStream,
                                  const StrRef&      password,
+                                 const StrRef&      suffix,
                                  const Crypto::IV&  iv,
                                  const Crypto::IV&  dataIv,
                                  const Crypto::Key& dataKey)
     : mOutStream(outStream)
     , mPassword(password)
+    , mSuffix(suffix)
     , mIv(iv)
     , mDataIv(dataIv)
     , mDataKey(dataKey)
@@ -35,7 +37,7 @@ void CryptoOutStream::writeHeader()
 {
     Crypto::Key key;
     
-    if (!CryptoUtil::stretch(mPassword, mIv, key))
+    if (!CryptoUtil::stretch(mPassword, mSuffix, mIv, key))
     {
         mState = State::kInternalError;
         return;

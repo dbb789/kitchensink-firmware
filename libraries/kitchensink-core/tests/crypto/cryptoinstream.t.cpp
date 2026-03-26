@@ -33,7 +33,7 @@ TEST(CryptoInStream, Simple)
     };
     
     DataRefInStream is(DataRef(AesFile, AesFile + sizeof(AesFile)));
-    CryptoInStream cis(is, "test");
+    CryptoInStream cis(is, "test", "_suffix");
 
     // FIXME: Incorporate password suffix.
 

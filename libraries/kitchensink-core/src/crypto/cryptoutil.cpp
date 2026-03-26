@@ -6,6 +6,7 @@
 
 #include <PSA_Crypto.h>
 
+#include <cstdint>
 #include <string.h>
 
 extern "C"
@@ -64,30 +65,28 @@ bool sha256(const uint8_t*  begin,
 }
 
 bool stretch(const StrRef&     password,
+             const StrRef&     suffix,
              const Crypto::IV& iv,
              Crypto::Key&      digest)
 {
     initializeLibrary();
-    
+
     digest.fill(0);
 
     std::copy(iv.begin(), iv.end(), digest.begin());
     
     // Dirty UTF-16LE conversion for 7-bit ASCII.
-    std::array<uint8_t, (Config::kPasswordMax + Config::kPasswordSuffix.length()) * 2> pwdUtf16;
+    std::array<uint16_t, Config::kPasswordMax> pwdUtf16;
     std::size_t pwdUtf16Len(0);
 
-    for (std::size_t i = 0; i < password.length() && i < Config::kPasswordMax; ++i)
+    for (std::size_t i = 0; i < password.length() && pwdUtf16Len < Config::kPasswordMax; ++i)
     {
         pwdUtf16[pwdUtf16Len++] = password[i];
-        pwdUtf16[pwdUtf16Len++] = 0;
     }
     
-    // Also, concatenate the firmware password suffix onto the end.
-    for (auto& c : Config::kPasswordSuffix)
+    for (std::size_t i = 0; i < suffix.length() && pwdUtf16Len < Config::kPasswordMax; ++i)
     {
-        pwdUtf16[pwdUtf16Len++] = c;
-        pwdUtf16[pwdUtf16Len++] = 0;
+        pwdUtf16[pwdUtf16Len++] = suffix[i];
     }
 
     // 8192 rounds of SHA256 on the IV and password as per AESCrypt.
@@ -98,7 +97,7 @@ bool stretch(const StrRef&     password,
         psa_hash_setup(&operation, PSA_ALG_SHA_256);
 
         psa_hash_update(&operation, digest.begin(), digest.size());
-        psa_hash_update(&operation, pwdUtf16.begin(), pwdUtf16Len);
+        psa_hash_update(&operation, reinterpret_cast<const uint8_t*>(pwdUtf16.begin()), sizeof(uint16_t) * pwdUtf16Len);
 
         size_t outputLen(0);
         

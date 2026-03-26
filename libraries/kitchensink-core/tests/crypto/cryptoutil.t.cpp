@@ -60,9 +60,8 @@ TEST(CryptoUtil, Stretch)
     
     Crypto::Key key;
     
-    ASSERT_TRUE(CryptoUtil::stretch("password", iv, key));
+    ASSERT_TRUE(CryptoUtil::stretch("password", "_kitchenSink", iv, key));
 
-    // NOTE: Expects firmware password suffix to be _kitchenSink.
     Crypto::Key expectedKey;
     TestUtil::hexToArray("6bb03448d35a920c91ddd8ebd328051289207382168e5c784827c12bfeae9414", expectedKey);
 
