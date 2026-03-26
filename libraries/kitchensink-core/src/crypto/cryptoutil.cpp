@@ -4,16 +4,37 @@
 #include "types/strbuf.h"
 #include "config.h"
 
-//#include <mbedtls/private/aes.h>
-//#include <mbedtls/private/sha256.h>
+#define MBEDTLS_ALLOW_PRIVATE_ACCESS
+#include <mbedtls/private/aes.h>
+#include <mbedtls/private/sha256.h>
+#undef MBEDTLS_ALLOW_PRIVATE_ACCESS
 
-#include <mbedtls/aes.h>
-#include <mbedtls/sha256.h>
+#include <psa/crypto.h>
 
 #include <mbedtls/md.h>
 
 namespace CryptoUtil
 {
+
+namespace
+{
+
+bool psaCryptoInitialized = false;
+
+}
+
+void initializeLibrary()
+{
+    if (!psaCryptoInitialized)
+    {
+        if (psa_crypto_init() != PSA_SUCCESS)
+        {
+            throw std::runtime_error("Failed to initialize PSA Crypto library");
+        }
+        
+        psaCryptoInitialized = true;
+    }
+}
 
 Crypto::SHA256 sha256(const uint8_t* begin,
                       const uint8_t* end)

@@ -146,10 +146,19 @@ void CryptoInStream::readHeader()
     // Verify HMAC
     
     auto key(CryptoUtil::stretch(mPassword, iv));
+
+    Crypto::HMAC expectedDataIvKeyHmac;
+
+    if (!HMACContext::generate(key,
+                               DataRef(dataIvKeyCrypt.begin(),
+                                       dataIvKeyCrypt.end()),
+                               expectedDataIvKeyHmac))
+    {
+        mState = State::kInternalError;
+        return;
+    }
     
-    if (dataIvKeyHmac != HMACContext::generate(key,
-                                               DataRef(dataIvKeyCrypt.begin(),
-                                                       dataIvKeyCrypt.end())))
+    if (dataIvKeyHmac != expectedDataIvKeyHmac)
     {
         mState = State::kBadHmac;
         return;

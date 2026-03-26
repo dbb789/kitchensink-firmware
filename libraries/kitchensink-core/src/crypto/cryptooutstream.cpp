@@ -22,7 +22,7 @@ CryptoOutStream::CryptoOutStream(OutStream&         outStream,
 
     if (mState == State::kWriting && !mHMAC.init(mDataKey))
     {
-        mState = State::kHmacFailed;
+        mState = State::kInternalError;
     }
 }
 
@@ -48,15 +48,21 @@ void CryptoOutStream::writeHeader()
                              dataIvKeyCrypt,
                              nextIv))
     {
-        mState = State::kEncryptFailed;
+        mState = State::kInternalError;
         return;
     }
     
-    Crypto::HMAC dataIvKeyHmac(
-        HMACContext::generate(key,
-                              DataRef(dataIvKeyCrypt.begin(),
-                                      dataIvKeyCrypt.end())));
-
+    Crypto::HMAC dataIvKeyHmac;
+    
+    if (!HMACContext::generate(key,
+                               DataRef(dataIvKeyCrypt.begin(),
+                                       dataIvKeyCrypt.end()),
+                               dataIvKeyHmac))
+    {
+        mState = State::kInternalError;
+        return;
+    }
+    
     mOutStream.write("AES");
     mOutStream.write(uint8_t('\x02'));
     mOutStream.write(uint8_t('\x00'));
@@ -102,7 +108,7 @@ std::size_t CryptoOutStream::write(const DataRef& data)
                                      cryptData.begin(),
                                      mDataIv))
             {
-                mState = State::kEncryptFailed;
+                mState = State::kInternalError;
                 return 0;
             }
             
@@ -110,7 +116,7 @@ std::size_t CryptoOutStream::write(const DataRef& data)
             
             if (!mHMAC.update(cryptDataRef))
             {
-                mState = State::kHmacFailed;
+                mState = State::kInternalError;
                 return 0;
             }
             mOutStream.write(cryptDataRef);
@@ -144,7 +150,7 @@ void CryptoOutStream::flush()
                                  cryptData.begin(),
                                  mDataIv))
         {
-            mState = State::kEncryptFailed;
+            mState = State::kInternalError;
             return;
         }
 
@@ -152,7 +158,7 @@ void CryptoOutStream::flush()
 
         if (!mHMAC.update(cryptDataRef))
         {
-            mState = State::kHmacFailed;
+            mState = State::kInternalError;
             return;
         }
         mOutStream.write(cryptDataRef);

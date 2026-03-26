@@ -17,9 +17,8 @@ class CryptoOutStream : public OutStream
 public:
     enum class State
     {
+        kInternalError = -1,
         kWriting       = 0,
-        kEncryptFailed = 1,
-        kHmacFailed    = 2,
         kFlushed       = 3
     };
 

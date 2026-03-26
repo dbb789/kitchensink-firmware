@@ -12,6 +12,8 @@ class StrRef;
 namespace CryptoUtil
 {
 
+void initializeLibrary();
+
 Crypto::SHA256 sha256(const uint8_t* begin,
                       const uint8_t* end);
 
