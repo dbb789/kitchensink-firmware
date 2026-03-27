@@ -99,7 +99,7 @@ void CryptoOutStream::writeHeader(const Crypto::IV&  dataIv,
     mOutStream.write(dataIvKeyCrypt);
     mOutStream.write(dataIvKeyHmac);
 
-    if (!mEncryptContext.init(dataKey, dataIv) || !mHMAC.init(dataKey))
+    if (!mEncryptContext.init(dataKey, dataIv, true) || !mHMAC.init(dataKey))
     {
         mState = State::kInternalError;
     }
@@ -121,14 +121,19 @@ std::size_t CryptoOutStream::write(const DataRef& data)
         if (mDataOut.remaining() == 0)
         {
             std::array<uint8_t, Crypto::kAesBlockSize> cryptData;
-            
-            if (!mEncryptContext.update(mData.begin(), cryptData.begin(), Crypto::kAesBlockSize))
+            std::size_t cryptLen = 0;
+
+            if (!mEncryptContext.update(mData.begin(),
+                                        Crypto::kAesBlockSize,
+                                        cryptData.begin(),
+                                        Crypto::kAesBlockSize,
+                                        cryptLen))
             {
                 mState = State::kInternalError;
                 return 0;
             }
             
-            auto cryptDataRef(DataRef(cryptData.begin(), cryptData.end()));
+            auto cryptDataRef(DataRef(cryptData.begin(), cryptData.begin() + cryptLen));
             
             if (!mHMAC.update(cryptDataRef))
             {
@@ -153,23 +158,36 @@ void CryptoOutStream::flush()
         return;
     }
 
-    // PKCS#7 padding: always emit a final full block, padded with N bytes of
-    // value N, where N is the number of padding bytes (1-16).
-    auto filledBytes(mDataOut.position() % Crypto::kAesBlockSize);
-    uint8_t padLen = (filledBytes == 0) ? Crypto::kAesBlockSize
-                                        : Crypto::kAesBlockSize - filledBytes;
+    // Pass any partial plaintext to PSA so it can be included in the PKCS#7 padding block.
+    auto filledBytes(mDataOut.position());
 
-    std::fill(mData.begin() + filledBytes, mData.end(), padLen);
+    if (filledBytes > 0)
+    {
+        std::array<uint8_t, Crypto::kAesBlockSize> unused;
+        std::size_t unusedLen = 0;
 
-    std::array<uint8_t, Crypto::kAesBlockSize> cryptData;
+        if (!mEncryptContext.update(mData.begin(),
+                                    filledBytes,
+                                    unused.begin(),
+                                    unused.size(),
+                                    unusedLen))
+        {
+            mState = State::kInternalError;
+            return;
+        }
+    }
 
-    if (!mEncryptContext.update(mData.begin(), cryptData.begin(), Crypto::kAesBlockSize))
+    // PSA adds PKCS#7 padding and outputs the final encrypted block.
+    std::array<uint8_t, Crypto::kAesBlockSize * 2> cryptData;
+    std::size_t cryptLen = 0;
+
+    if (!mEncryptContext.finish(cryptData.begin(), cryptData.size(), cryptLen))
     {
         mState = State::kInternalError;
         return;
     }
 
-    auto cryptDataRef(DataRef(cryptData.begin(), cryptData.end()));
+    auto cryptDataRef(DataRef(cryptData.begin(), cryptData.begin() + cryptLen));
 
     if (!mHMAC.update(cryptDataRef))
     {
@@ -179,12 +197,6 @@ void CryptoOutStream::flush()
 
     mOutStream.write(cryptDataRef);
 
-    if (!mEncryptContext.finish())
-    {
-        mState = State::kInternalError;
-        return;
-    }
-
     Crypto::HMAC hmac;
 
     if (!mHMAC.finish(hmac))
@@ -192,7 +204,7 @@ void CryptoOutStream::flush()
         mState = State::kInternalError;
         return;
     }
-    
+
     mOutStream.write(hmac);
 
     mState = State::kFlushed;

@@ -214,7 +214,7 @@ void CryptoInStream::readHeader()
 
     ArrayUtil<decltype(dataIvKey)>::split(dataIvKey, dataIv, dataKey);
 
-    if (!mDecryptContext.init(dataKey, dataIv) || !mHMAC.init(dataKey))
+    if (!mDecryptContext.init(dataKey, dataIv, true) || !mHMAC.init(dataKey))
     {
         mState = State::kInternalError;
         return;
@@ -233,16 +233,19 @@ bool CryptoInStream::readBlock()
         return false;
     }
 
-    // Stop reading blocks until output buffer has been consumed.
-    if (mOutBuffer.remaining() < Crypto::kAesBlockSize)
+    // Stop reading blocks until there is room for worst-case output:
+    // 16 bytes from update() + 15 bytes from finish() on the last block.
+    if (mOutBuffer.remaining() < Crypto::kAesBlockSize * 2)
     {
         return false;
     }
 
-    // Now decrypt a single block.
+    // Decrypt a single block.
     
     std::array<uint8_t, Crypto::kAesBlockSize> inBlock;
-    std::array<uint8_t, Crypto::kAesBlockSize> outBlock;
+    // PSA CBC_PKCS7 decryption holds back the previous block, so the second
+    // and subsequent update() calls may produce up to 2 blocks of output.
+    std::array<uint8_t, Crypto::kAesBlockSize * 2> outBlock;
     ArrayOutStream inBlockStream(inBlock);
     
     mInBuffer.read(inBlockStream, Crypto::kAesBlockSize);
@@ -252,14 +255,23 @@ bool CryptoInStream::readBlock()
         mState = State::kInternalError;
         return false;
     }
-    
-    if (!mDecryptContext.update(inBlock.begin(), outBlock.begin(), Crypto::kAesBlockSize))
+
+    // PSA CBC_PKCS7 decryption holds back one block, so update() may return
+    // 0 bytes on the first call, and 16 bytes on each subsequent call.
+    std::size_t outLen = 0;
+
+    if (!mDecryptContext.update(inBlock,
+                                outBlock,
+                                outLen))
     {
         mState = State::kCorrupted;
         return false;
     }
-    
-    auto blockSize(Crypto::kAesBlockSize);
+
+    if (outLen > 0)
+    {
+        mOutBuffer.write(DataRef(outBlock.begin(), outBlock.begin() + outLen));
+    }
 
     bool readMore = true;
 
@@ -272,30 +284,19 @@ bool CryptoInStream::readBlock()
         
         mInBuffer.read(suffixStream, suffix.size());
 
-        // PKCS#7 unpadding: the last byte of the decrypted block is the pad length.
-        uint8_t padLen = outBlock[Crypto::kAesBlockSize - 1];
+        // PSA validates PKCS#7 and strips padding. Returns PSA_ERROR_INVALID_PADDING
+        // on bad padding, which finish() translates to kCorrupted.
+        std::size_t finalLen = 0;
 
-        if (padLen == 0 || padLen > Crypto::kAesBlockSize)
+        if (!mDecryptContext.finish(outBlock, finalLen))
         {
             mState = State::kCorrupted;
             return false;
         }
 
-        for (std::size_t i = Crypto::kAesBlockSize - padLen; i < Crypto::kAesBlockSize; ++i)
+        if (finalLen > 0)
         {
-            if (outBlock[i] != padLen)
-            {
-                mState = State::kCorrupted;
-                return false;
-            }
-        }
-
-        blockSize = Crypto::kAesBlockSize - padLen;
-
-        if (!mDecryptContext.finish())
-        {
-            mState = State::kInternalError;
-            return false;
+            mOutBuffer.write(DataRef(outBlock.begin(), outBlock.begin() + finalLen));
         }
 
         Crypto::HMAC dataHmac;
@@ -323,10 +324,6 @@ bool CryptoInStream::readBlock()
         
         readMore = false;
     }
-
-    auto blockData(DataRef(outBlock.begin(), outBlock.begin() + blockSize));
-    
-    mOutBuffer.write(blockData);
 
     return readMore;
 }
