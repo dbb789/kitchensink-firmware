@@ -1,5 +1,6 @@
 #include "crypto/cryptoinstream.h"
 
+#include "crypto/aesdecryptcontext.h"
 #include "crypto/cryptotypes.h"
 #include "crypto/cryptoutil.h"
 #include "types/arrayutil.h"
@@ -196,21 +197,24 @@ void CryptoInStream::readHeader()
     
     std::array<uint8_t, Crypto::kAesBlockSize + Crypto::kAesKeyLen> dataIvKey;
 
-    Crypto::IV nextIv;
-    
-    if (!CryptoUtil::decrypt(key,
-                             iv,
-                             dataIvKeyCrypt,
-                             dataIvKey,
-                             nextIv))
     {
-        mState = State::kCorrupted;
-        return;
-    }
-    
-    ArrayUtil<decltype(dataIvKey)>::split(dataIvKey, mDataIv, mDataKey);
+        AESDecryptContext headerDecrypt;
 
-    if (!mHMAC.init(mDataKey))
+        if (!headerDecrypt.init(key, iv) ||
+            !headerDecrypt.update(dataIvKeyCrypt, dataIvKey) ||
+            !headerDecrypt.finish())
+        {
+            mState = State::kCorrupted;
+            return;
+        }
+    }
+
+    Crypto::IV  dataIv;
+    Crypto::Key dataKey;
+
+    ArrayUtil<decltype(dataIvKey)>::split(dataIvKey, dataIv, dataKey);
+
+    if (!mDecryptContext.init(dataKey, dataIv) || !mHMAC.init(dataKey))
     {
         mState = State::kInternalError;
         return;
@@ -249,12 +253,7 @@ bool CryptoInStream::readBlock()
         return false;
     }
     
-    if (!CryptoUtil::decrypt(mDataKey,
-                             mDataIv,
-                             Crypto::kAesBlockSize,
-                             inBlock.begin(),
-                             outBlock.begin(),
-                             mDataIv))
+    if (!mDecryptContext.update(inBlock.begin(), outBlock.begin(), Crypto::kAesBlockSize))
     {
         mState = State::kCorrupted;
         return false;
@@ -292,6 +291,12 @@ bool CryptoInStream::readBlock()
         }
 
         blockSize = Crypto::kAesBlockSize - padLen;
+
+        if (!mDecryptContext.finish())
+        {
+            mState = State::kInternalError;
+            return false;
+        }
 
         Crypto::HMAC dataHmac;
             

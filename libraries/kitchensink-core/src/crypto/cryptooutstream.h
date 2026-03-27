@@ -1,6 +1,7 @@
 #ifndef INCLUDED_CRYPTOOUTSTREAM_H
 #define INCLUDED_CRYPTOOUTSTREAM_H
 
+#include "crypto/aesencryptcontext.h"
 #include "crypto/cryptoutil.h"
 #include "crypto/cryptotypes.h"
 #include "crypto/hmaccontext.h"
@@ -41,7 +42,7 @@ public:
     State state() const;
 
 private:
-    void writeHeader(uint32_t kdfIterations);
+    void writeHeader(const Crypto::IV& dataIv, const Crypto::Key& dataKey, uint32_t kdfIterations);
     void flush();
 
 private:
@@ -49,8 +50,7 @@ private:
     StrRef                                     mPassword;
     StrRef                                     mSuffix;
     Crypto::IV                                 mIv;
-    Crypto::IV                                 mDataIv;
-    Crypto::Key                                mDataKey;
+    AESEncryptContext                          mEncryptContext;
     HMACContext                                mHMAC;
     std::array<uint8_t, Crypto::kAesBlockSize> mData;
     ArrayOutStream                             mDataOut;

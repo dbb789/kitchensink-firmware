@@ -1,5 +1,6 @@
 #include "crypto/cryptooutstream.h"
 
+#include "crypto/aesencryptcontext.h"
 #include "types/arrayutil.h"
 #include "types/stroutstream.h"
 #include "config.h"
@@ -15,18 +16,11 @@ CryptoOutStream::CryptoOutStream(OutStream&         outStream,
     , mPassword(password)
     , mSuffix(suffix)
     , mIv(iv)
-    , mDataIv(dataIv)
-    , mDataKey(dataKey)
     , mData()
     , mDataOut(mData)
     , mState(State::kWriting)
 {
-    writeHeader(kdfIterations);
-
-    if (mState == State::kWriting && !mHMAC.init(mDataKey))
-    {
-        mState = State::kInternalError;
-    }
+    writeHeader(dataIv, dataKey, kdfIterations);
 }
 
 CryptoOutStream::~CryptoOutStream()
@@ -34,7 +28,9 @@ CryptoOutStream::~CryptoOutStream()
     flush();
 }
 
-void CryptoOutStream::writeHeader(uint32_t kdfIterations)
+void CryptoOutStream::writeHeader(const Crypto::IV&  dataIv,
+                                  const Crypto::Key& dataKey,
+                                  uint32_t           kdfIterations)
 {
     Crypto::Key key;
     
@@ -44,27 +40,28 @@ void CryptoOutStream::writeHeader(uint32_t kdfIterations)
         return;
     }
 
-    std::array<uint8_t, sizeof(mDataIv) + sizeof(mDataKey)> dataIvKey;
+    std::array<uint8_t, sizeof(dataIv) + sizeof(dataKey)> dataIvKey;
 
-    ArrayUtil<decltype(dataIvKey)>::join(mDataIv, mDataKey, dataIvKey);
+    ArrayUtil<decltype(dataIvKey)>::join(dataIv, dataKey, dataIvKey);
     
-    std::array<uint8_t, sizeof(mDataIv) + sizeof(mDataKey)> dataIvKeyCrypt;
+    std::array<uint8_t, sizeof(dataIv) + sizeof(dataKey)> dataIvKeyCrypt;
 
-    Crypto::IV nextIv;
-    if (!CryptoUtil::encrypt(key,
-                             mIv,
-                             dataIvKey,
-                             dataIvKeyCrypt,
-                             nextIv))
     {
-        mState = State::kInternalError;
-        return;
+        AESEncryptContext headerEncrypt;
+
+        if (!headerEncrypt.init(key, mIv) ||
+            !headerEncrypt.update(dataIvKey, dataIvKeyCrypt) ||
+            !headerEncrypt.finish())
+        {
+            mState = State::kInternalError;
+            return;
+        }
     }
 
     // HMAC input is the encrypted IV+Key followed by the version byte 0x03.
-    std::array<uint8_t, sizeof(mDataIv) + sizeof(mDataKey) + 1> dataIvKeyWithVersion;
+    std::array<uint8_t, sizeof(dataIv) + sizeof(dataKey) + 1> dataIvKeyWithVersion;
     std::copy(dataIvKeyCrypt.begin(), dataIvKeyCrypt.end(), dataIvKeyWithVersion.begin());
-    dataIvKeyWithVersion[sizeof(mDataIv) + sizeof(mDataKey)] = 0x03;
+    dataIvKeyWithVersion[sizeof(dataIv) + sizeof(dataKey)] = 0x03;
 
     Crypto::HMAC dataIvKeyHmac;
     
@@ -101,6 +98,11 @@ void CryptoOutStream::writeHeader(uint32_t kdfIterations)
     mOutStream.write(mIv);
     mOutStream.write(dataIvKeyCrypt);
     mOutStream.write(dataIvKeyHmac);
+
+    if (!mEncryptContext.init(dataKey, dataIv) || !mHMAC.init(dataKey))
+    {
+        mState = State::kInternalError;
+    }
 }
 
 std::size_t CryptoOutStream::write(const DataRef& data)
@@ -120,12 +122,7 @@ std::size_t CryptoOutStream::write(const DataRef& data)
         {
             std::array<uint8_t, Crypto::kAesBlockSize> cryptData;
             
-            if (!CryptoUtil::encrypt(mDataKey,
-                                     mDataIv,
-                                     Crypto::kAesBlockSize,
-                                     mData.begin(),
-                                     cryptData.begin(),
-                                     mDataIv))
+            if (!mEncryptContext.update(mData.begin(), cryptData.begin(), Crypto::kAesBlockSize))
             {
                 mState = State::kInternalError;
                 return 0;
@@ -166,12 +163,7 @@ void CryptoOutStream::flush()
 
     std::array<uint8_t, Crypto::kAesBlockSize> cryptData;
 
-    if (!CryptoUtil::encrypt(mDataKey,
-                             mDataIv,
-                             Crypto::kAesBlockSize,
-                             mData.begin(),
-                             cryptData.begin(),
-                             mDataIv))
+    if (!mEncryptContext.update(mData.begin(), cryptData.begin(), Crypto::kAesBlockSize))
     {
         mState = State::kInternalError;
         return;
@@ -186,6 +178,12 @@ void CryptoOutStream::flush()
     }
 
     mOutStream.write(cryptDataRef);
+
+    if (!mEncryptContext.finish())
+    {
+        mState = State::kInternalError;
+        return;
+    }
 
     Crypto::HMAC hmac;
 
