@@ -15,6 +15,7 @@ class CryptoInStream : public InStream
 public:
     enum class State
     {
+        kInternalError = -1,
         kReading       = 0,
         kCorrupted     = 1,
         kTruncated     = 2,
@@ -22,7 +23,7 @@ public:
         kBadVersion    = 4,
         kBadHmac       = 5,
         kBadDataHmac   = 6,
-
+        
         // Content should be considered untrusted or corrupted until state is
         // marked with this.
         kValidated     = 10
@@ -30,7 +31,8 @@ public:
     
 public:
     CryptoInStream(InStream&     inStream,
-                   const StrRef& password);
+                   const StrRef& password,
+                   const StrRef& suffix);
 
 public:
     virtual ~CryptoInStream() = default;
@@ -47,6 +49,7 @@ private:
 private:
     InStream&                                 mInStream;
     StrRef                                    mPassword;
+    StrRef                                    mSuffix;
     Crypto::Key                               mDataKey;
     Crypto::IV                                mDataIv;
     HMACContext                               mHMAC;

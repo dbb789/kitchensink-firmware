@@ -10,7 +10,7 @@ namespace DefaultProfile
 
 void init(KeyboardState& keyboardState)
 {
-    static const char* const GlobalConfigTxt =
+    static const char GlobalConfigTxt[] =
     "[config]\n"
     "tapDelay=250\n"
     "keyRepeatDelay=660\n"
@@ -41,7 +41,7 @@ void init(KeyboardState& keyboardState)
         s.deserialize(is, keyboardState.globalConfig);
     }
 
-    static const char* const LayoutConfig =
+    static const char LayoutConfig[] =
     "[layer 0]\n"
     "name=Default\n"
     "row=KGrave KNonUsHash K1 K2 K3 K4 K5 KNonUsBackslash MD10 MD11 MD21 MD22 L3 K6 K7 K8 K9 K0 KMinus KEqual\n"
@@ -81,7 +81,7 @@ void init(KeyboardState& keyboardState)
         s.deserialize(is, keyboardState.layerStack);
     }
 
-    static const char* const MacroConfig =
+    static const char MacroConfig[] =
     "[macro 0]\n"
     "name={\n"
     "shortcut=\n"
@@ -137,7 +137,7 @@ void init(KeyboardState& keyboardState)
         s.deserialize(is, keyboardState.macroSet);
     }
     
-    static const char* const MultiConfig =
+    static const char MultiConfig[] =
     "[multi 0]\n"
     "name=Shift\n"
     "event=KLShift\n"
@@ -159,7 +159,7 @@ void init(KeyboardState& keyboardState)
         s.deserialize(is, keyboardState.multiKeySet);
     }
 
-    static const char* const SmartConfig =
+    static const char SmartConfig[] =
     "[smart 0]\n"
     "name=Shift Lock\n"
     "event=KLShift\n"

@@ -11,7 +11,7 @@
 #include <ostream>
 
 static void PrintTo(const DataRef& dataRef,
-             std::ostream*  os)
+                    std::ostream*  os)
 {
     *os << "Size=" << dataRef.size() << " ";
     
@@ -54,7 +54,7 @@ void sanityCheck(const DataRef& testData,
     ArrayOutStream encryptedOut(encryptedData);
 
     {
-        CryptoOutStream cryptOut(encryptedOut, password, iv, dataIv, dataKey);
+        CryptoOutStream cryptOut(encryptedOut, password, "_kitchenSink", iv, dataIv, dataKey);
 
         cryptOut.write(testData);
     }
@@ -63,7 +63,7 @@ void sanityCheck(const DataRef& testData,
 
     DataRefInStream encryptedIn(encryptedOut.data());
     
-    CryptoInStream cryptIn(encryptedIn, password);
+    CryptoInStream cryptIn(encryptedIn, password, "_kitchenSink");
     
     std::array<uint8_t, 1024 * 1024> decryptedData;
     ArrayOutStream decryptedOut(decryptedData);
@@ -241,7 +241,7 @@ TEST(Crypto, AesCryptRead)
     DataRef testData(TestDataRaw, TestDataRaw + sizeof(TestDataRaw));
     DataRefInStream encryptedIn(testData);
 
-    CryptoInStream cryptIn(encryptedIn, "test");
+    CryptoInStream cryptIn(encryptedIn, "test", "_kitchenSink");
 
     ASSERT_EQ(cryptIn.state(), CryptoInStream::State::kReading);
 
@@ -296,7 +296,7 @@ TEST(Crypto, AesCryptReadBadPassword)
     DataRef testData(TestDataRaw, TestDataRaw + sizeof(TestDataRaw));
     DataRefInStream encryptedIn(testData);
 
-    CryptoInStream cryptIn(encryptedIn, "wrong");
+    CryptoInStream cryptIn(encryptedIn, "wrong", "_kitchenSink");
 
     ASSERT_EQ(cryptIn.state(), CryptoInStream::State::kBadHmac);
 }
@@ -336,7 +336,7 @@ TEST(Crypto, AesCryptReadSequential)
     DataRef testData(TestDataRaw, TestDataRaw + sizeof(TestDataRaw));
     DataRefInStream encryptedIn(testData);
 
-    CryptoInStream cryptIn(encryptedIn, "test");
+    CryptoInStream cryptIn(encryptedIn, "test", "_kitchenSink");
 
     ASSERT_EQ(cryptIn.state(), CryptoInStream::State::kReading);
 
@@ -401,7 +401,7 @@ TEST(Crypto, AesCryptTruncated)
     DataRef testData(TestDataRaw, TestDataRaw + sizeof(TestDataRaw));
     DataRefInStream encryptedIn(testData);
 
-    CryptoInStream cryptIn(encryptedIn, "test");
+    CryptoInStream cryptIn(encryptedIn, "test", "_kitchenSink");
 
     ASSERT_EQ(cryptIn.state(), CryptoInStream::State::kReading);
     
@@ -448,7 +448,7 @@ TEST(Crypto, AesCryptBadDataHmac)
     DataRef testData(TestDataRaw, TestDataRaw + sizeof(TestDataRaw));
     DataRefInStream encryptedIn(testData);
 
-    CryptoInStream cryptIn(encryptedIn, "test");
+    CryptoInStream cryptIn(encryptedIn, "test", "_kitchenSink");
 
     ASSERT_EQ(cryptIn.state(), CryptoInStream::State::kReading);
     
@@ -467,7 +467,7 @@ TEST(Crypto, InStreamBadHeader)
     // Magic bytes are not "AES".
     const uint8_t raw[] = { 0x41, 0x45, 0x54 };   // "AET"
     DataRefInStream is(DataRef(raw, raw + sizeof(raw)));
-    CryptoInStream cis(is, "test");
+    CryptoInStream cis(is, "test", "_kitchenSink");
     ASSERT_EQ(cis.state(), CryptoInStream::State::kBadHeader);
 }
 
@@ -476,7 +476,7 @@ TEST(Crypto, InStreamBadVersion)
     // Magic "AES" followed by version 0x01 instead of 0x02.
     const uint8_t raw[] = { 0x41, 0x45, 0x53, 0x01 };
     DataRefInStream is(DataRef(raw, raw + sizeof(raw)));
-    CryptoInStream cis(is, "test");
+    CryptoInStream cis(is, "test", "_kitchenSink");
     ASSERT_EQ(cis.state(), CryptoInStream::State::kBadVersion);
 }
 
@@ -485,7 +485,7 @@ TEST(Crypto, InStreamCorrupted)
     // Magic + version correct, but reserved byte is non-zero.
     const uint8_t raw[] = { 0x41, 0x45, 0x53, 0x02, 0x01 };
     DataRefInStream is(DataRef(raw, raw + sizeof(raw)));
-    CryptoInStream cis(is, "test");
+    CryptoInStream cis(is, "test", "_kitchenSink");
     ASSERT_EQ(cis.state(), CryptoInStream::State::kCorrupted);
 }
 
@@ -504,7 +504,7 @@ TEST(Crypto, OutStreamInitialState)
     std::array<uint8_t, 1024> encryptedData;
     ArrayOutStream encryptedOut(encryptedData);
 
-    CryptoOutStream cryptOut(encryptedOut, "test", iv, dataIv, dataKey);
+    CryptoOutStream cryptOut(encryptedOut, "test", "_kitchenSink", iv, dataIv, dataKey);
 
     ASSERT_EQ(cryptOut.state(), CryptoOutStream::State::kWriting);
 

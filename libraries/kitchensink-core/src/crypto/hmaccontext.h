@@ -4,13 +4,23 @@
 #include "crypto/cryptotypes.h"
 #include "types/dataref.h"
 
-#include <mbedTLS_MD.h>
+#include <PSA_Crypto.h>
 
 class HMACContext
 {
 public:
-    static Crypto::HMAC generate(const Crypto::Key& key,
-                                 const DataRef& data);
+    static bool generate(const Crypto::Key& key,
+                         const DataRef& data,
+                         Crypto::HMAC& hmac);
+
+private:
+    enum class State
+    {
+        kInternalError = -1,
+        kUninitialized = 0,
+        kInitialized   = 1,
+        kFinished      = 2
+    };
     
 public:
     HMACContext();
@@ -19,11 +29,12 @@ public:
 public:
     bool init(const Crypto::Key& key);
     bool update(const DataRef& data);
-    Crypto::HMAC finish();
+    bool finish(Crypto::HMAC& hmac);
     
 private:
-    bool                 mContextInitialized;
-    mbedtls_md_context_t mContext;
+    State                 mState;
+    psa_mac_operation_t   mOperation;
+    mbedtls_svc_key_id_t  mKeyId;
     
 private:
     HMACContext(const HMACContext&) = delete;

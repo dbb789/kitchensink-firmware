@@ -6,11 +6,13 @@
 
 CryptoOutStream::CryptoOutStream(OutStream&         outStream,
                                  const StrRef&      password,
+                                 const StrRef&      suffix,
                                  const Crypto::IV&  iv,
                                  const Crypto::IV&  dataIv,
                                  const Crypto::Key& dataKey)
     : mOutStream(outStream)
     , mPassword(password)
+    , mSuffix(suffix)
     , mIv(iv)
     , mDataIv(dataIv)
     , mDataKey(dataKey)
@@ -22,7 +24,7 @@ CryptoOutStream::CryptoOutStream(OutStream&         outStream,
 
     if (mState == State::kWriting && !mHMAC.init(mDataKey))
     {
-        mState = State::kHmacFailed;
+        mState = State::kInternalError;
     }
 }
 
@@ -33,8 +35,14 @@ CryptoOutStream::~CryptoOutStream()
 
 void CryptoOutStream::writeHeader()
 {
-    auto key(CryptoUtil::stretch(mPassword, mIv));
-        
+    Crypto::Key key;
+    
+    if (!CryptoUtil::stretch(mPassword, mSuffix, mIv, key))
+    {
+        mState = State::kInternalError;
+        return;
+    }
+
     std::array<uint8_t, sizeof(mDataIv) + sizeof(mDataKey)> dataIvKey;
 
     ArrayUtil<decltype(dataIvKey)>::join(mDataIv, mDataKey, dataIvKey);
@@ -48,15 +56,21 @@ void CryptoOutStream::writeHeader()
                              dataIvKeyCrypt,
                              nextIv))
     {
-        mState = State::kEncryptFailed;
+        mState = State::kInternalError;
+        return;
+    }
+
+    Crypto::HMAC dataIvKeyHmac;
+    
+    if (!HMACContext::generate(key,
+                               DataRef(dataIvKeyCrypt.begin(),
+                                       dataIvKeyCrypt.end()),
+                               dataIvKeyHmac))
+    {
+        mState = State::kInternalError;
         return;
     }
     
-    Crypto::HMAC dataIvKeyHmac(
-        HMACContext::generate(key,
-                              DataRef(dataIvKeyCrypt.begin(),
-                                      dataIvKeyCrypt.end())));
-
     mOutStream.write("AES");
     mOutStream.write(uint8_t('\x02'));
     mOutStream.write(uint8_t('\x00'));
@@ -102,7 +116,7 @@ std::size_t CryptoOutStream::write(const DataRef& data)
                                      cryptData.begin(),
                                      mDataIv))
             {
-                mState = State::kEncryptFailed;
+                mState = State::kInternalError;
                 return 0;
             }
             
@@ -110,7 +124,7 @@ std::size_t CryptoOutStream::write(const DataRef& data)
             
             if (!mHMAC.update(cryptDataRef))
             {
-                mState = State::kHmacFailed;
+                mState = State::kInternalError;
                 return 0;
             }
             mOutStream.write(cryptDataRef);
@@ -144,7 +158,7 @@ void CryptoOutStream::flush()
                                  cryptData.begin(),
                                  mDataIv))
         {
-            mState = State::kEncryptFailed;
+            mState = State::kInternalError;
             return;
         }
 
@@ -152,7 +166,7 @@ void CryptoOutStream::flush()
 
         if (!mHMAC.update(cryptDataRef))
         {
-            mState = State::kHmacFailed;
+            mState = State::kInternalError;
             return;
         }
         mOutStream.write(cryptDataRef);
@@ -162,7 +176,13 @@ void CryptoOutStream::flush()
     
     mOutStream.write(uint8_t(blockOffset));
 
-    auto hmac(mHMAC.finish());
+    Crypto::HMAC hmac;
+
+    if (!mHMAC.finish(hmac))
+    {
+        mState = State::kInternalError;
+        return;
+    }
     
     mOutStream.write(hmac);
 

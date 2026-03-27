@@ -12,11 +12,16 @@ class StrRef;
 namespace CryptoUtil
 {
 
-Crypto::SHA256 sha256(const uint8_t* begin,
-                      const uint8_t* end);
+void initializeLibrary();
 
-Crypto::Key stretch(const StrRef&     password,
-                    const Crypto::IV& iv);
+bool sha256(const uint8_t*  begin,
+            const uint8_t*  end,
+            Crypto::SHA256& hash);
+
+bool stretch(const StrRef&     password,
+             const StrRef&     suffix,
+             const Crypto::IV& iv,
+             Crypto::Key&      digest);
 
 bool encrypt(const Crypto::Key& key,
              const Crypto::IV&  iv,
@@ -35,10 +40,12 @@ bool decrypt(const Crypto::Key& key,
 
 template <std::size_t Capacity>
 inline
-Crypto::SHA256 sha256(const std::array<uint8_t, Capacity>& data)
+bool sha256(const std::array<uint8_t, Capacity>& data,
+            Crypto::SHA256&                      hash)
 {
     return sha256(data.begin(),
-                  data.end());
+                  data.end(),
+                  hash);
 }
 
 template <std::size_t Capacity>

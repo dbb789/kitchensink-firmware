@@ -19,8 +19,12 @@ bool EntropyPool::read(Crypto::SHA256& output)
 
     // Hash from the beginning of the entropy pool - this is the most likely to
     // be composed of multiple entries of random data.
-    output = CryptoUtil::sha256(mData.begin(),
-                                mData.begin() + sourceSize);
+    if (!CryptoUtil::sha256(mData.begin(),
+                            mData.begin() + sourceSize,
+                            output))
+    {
+        return false;
+    }
 
     // Move the following block of data to the beginning of the entropy pool
     // (it's perfectly fine to leave the trailing remaining data as is).

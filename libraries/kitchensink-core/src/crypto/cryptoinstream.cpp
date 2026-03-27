@@ -6,9 +6,11 @@
 #include "types/arrayoutstream.h"
 
 CryptoInStream::CryptoInStream(InStream&     inStream,
-                               const StrRef& password)
+                               const StrRef& password,
+                               const StrRef& suffix)
     : mInStream(inStream)
     , mPassword(password)
+    , mSuffix(suffix)
     , mState(State::kReading)
 {
     readHeader();
@@ -144,12 +146,26 @@ void CryptoInStream::readHeader()
     }
 
     // Verify HMAC
+    Crypto::Key key;
     
-    auto key(CryptoUtil::stretch(mPassword, iv));
+    if (!CryptoUtil::stretch(mPassword, mSuffix, iv, key))
+    {
+        mState = State::kInternalError;
+        return;
+    }
+
+    Crypto::HMAC expectedDataIvKeyHmac;
+
+    if (!HMACContext::generate(key,
+                               DataRef(dataIvKeyCrypt.begin(),
+                                       dataIvKeyCrypt.end()),
+                               expectedDataIvKeyHmac))
+    {
+        mState = State::kInternalError;
+        return;
+    }
     
-    if (dataIvKeyHmac != HMACContext::generate(key,
-                                               DataRef(dataIvKeyCrypt.begin(),
-                                                       dataIvKeyCrypt.end())))
+    if (dataIvKeyHmac != expectedDataIvKeyHmac)
     {
         mState = State::kBadHmac;
         return;
@@ -158,6 +174,7 @@ void CryptoInStream::readHeader()
     std::array<uint8_t, Crypto::kAesBlockSize + Crypto::kAesKeyLen> dataIvKey;
 
     Crypto::IV nextIv;
+    
     if (!CryptoUtil::decrypt(key,
                              iv,
                              dataIvKeyCrypt,
@@ -172,7 +189,7 @@ void CryptoInStream::readHeader()
 
     if (!mHMAC.init(mDataKey))
     {
-        mState = State::kCorrupted;
+        mState = State::kInternalError;
         return;
     }
 }
@@ -205,7 +222,7 @@ bool CryptoInStream::readBlock()
 
     if (!mHMAC.update(DataRef(inBlock.begin(), inBlock.end())))
     {
-        mState = State::kCorrupted;
+        mState = State::kInternalError;
         return false;
     }
     
@@ -249,7 +266,13 @@ bool CryptoInStream::readBlock()
                   suffix.begin() + SuffixLen,
                   dataHmac.begin());
 
-        auto expectedHmac(mHMAC.finish());
+        Crypto::HMAC expectedHmac;
+        
+        if (!mHMAC.finish(expectedHmac))
+        {
+            mState = State::kInternalError;
+            return false;
+        }
 
         if (dataHmac != expectedHmac)
         {

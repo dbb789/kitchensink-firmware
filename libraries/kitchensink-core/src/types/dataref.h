@@ -2,7 +2,6 @@
 #define INCLUDED_DATAREF_H
 
 #include "types/range.h"
-#include "types/strref.h"
 
 #include <array>
 #include <cstdint>
@@ -14,16 +13,14 @@ public:
 
 public:
     constexpr DataRef();
-    
-    DataRef(const StrRef& str);
-    DataRef(const char* str);
-    DataRef(const DataRef& rhs);
-    
     constexpr DataRef(uint8_t octet);
-
     constexpr DataRef(const_iterator begin,
                       const_iterator end);
     
+    DataRef(const DataRef& rhs);
+
+    template<std::size_t Size>
+    DataRef(const char (&str)[Size]);
 
     template <std::size_t Capacity>
     constexpr DataRef(const std::array<uint8_t, Capacity>& array);
@@ -54,33 +51,6 @@ constexpr DataRef::DataRef()
 { }
 
 inline
-DataRef::DataRef(const StrRef& str)
-    : mRange(reinterpret_cast<const_iterator>(str.begin()),
-             reinterpret_cast<const_iterator>(str.end()))
-    , mInPlace(0)
-{ }
-
-inline
-DataRef::DataRef(const char* str)
-    : DataRef(StrRef(str))
-{ }
-
-inline
-DataRef::DataRef(const DataRef& rhs)
-{
-    if (rhs.mRange.begin() == &rhs.mInPlace)
-    {
-        mRange = Range<const_iterator>(&mInPlace, &mInPlace + 1);
-    }
-    else
-    {
-        mRange = rhs.mRange;
-    }
-    
-    mInPlace = rhs.mInPlace;
-}
-
-inline
 constexpr DataRef::DataRef(uint8_t octet)
     : mRange(&mInPlace, &mInPlace + 1)
     , mInPlace(octet)
@@ -99,6 +69,31 @@ constexpr DataRef::DataRef(const std::array<uint8_t, Capacity>& array)
     : mRange(array.begin(), array.end())
     , mInPlace(0)
 { }
+
+
+inline
+DataRef::DataRef(const DataRef& rhs)
+{
+    if (rhs.mRange.begin() == &rhs.mInPlace)
+    {
+        mRange = Range<const_iterator>(&mInPlace, &mInPlace + 1);
+    }
+    else
+    {
+        mRange = rhs.mRange;
+    }
+    
+    mInPlace = rhs.mInPlace;
+}
+
+template<std::size_t Size>
+inline
+DataRef::DataRef(const char (&str)[Size])
+{
+    mRange = Range<const_iterator>(
+        reinterpret_cast<const uint8_t*>(str),
+        reinterpret_cast<const uint8_t*>(str + Size - 1));
+}
 
 inline
 constexpr DataRef::const_iterator DataRef::begin() const

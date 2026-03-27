@@ -22,13 +22,14 @@ public:
     virtual Widget& rootWidget() override;
         
 private:
-    Timer          mUpdateTimer;
+    Timer                  mUpdateTimer;
     EntropyPool&           mEntropyPool;
     PropertyWidget         mTestAES;
     PropertyWidget         mTestSHA256;
+    PropertyWidget         mTestPKCS5;
     PropertyWidget         mPoolSize;
     LabelWidget            mPoolContent;
-    HStackWidget::Items<4> mItems;
+    HStackWidget::Items<5> mItems;
     HStackWidget           mHStackWidget;
 
 };

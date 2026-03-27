@@ -2,6 +2,7 @@
 #define INCLUDED_STRREF_H
 
 #include "types/range.h"
+#include "types/dataref.h"
 
 #include <cstdint>
 
@@ -32,6 +33,7 @@ public:
     StrRef trim() const;
         
 public:
+    operator DataRef() const;
     constexpr const char& operator[](std::size_t n) const;
     
 private:
@@ -97,6 +99,13 @@ constexpr StrRef StrRef::substr(std::size_t start, std::size_t len) const
     return StrRef(
         (start < length()) ? (mRange.begin() + start) : mRange.end(),
         (start + len) < length() ? (mRange.begin() + start + len) : mRange.end());
+}
+
+inline
+StrRef::operator DataRef() const
+{
+    return DataRef(reinterpret_cast<const uint8_t*>(mRange.begin()),
+                   reinterpret_cast<const uint8_t*>(mRange.end()));
 }
 
 inline

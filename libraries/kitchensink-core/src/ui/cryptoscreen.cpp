@@ -1,10 +1,13 @@
 #include "ui/cryptoscreen.h"
 
+#define MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
+#include <mbedtls/private/aes.h>
+#include <mbedtls/private/sha256.h>
+#include <mbedtls/private/pkcs5.h>
+#undef MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
+
 #include "types/stroutstream.h"
 #include "crypto/entropypool.h"
-
-#include <mbedTLS_AES.h>
-#include <mbedTLS_SHA256.h>
 
 CryptoScreen::CryptoScreen(TimerManager&       timer,
                            EntropyPool& entropyPool)
@@ -12,10 +15,12 @@ CryptoScreen::CryptoScreen(TimerManager&       timer,
     , mEntropyPool(entropyPool)
     , mTestAES("mbedTLS AES", 100, "Testing")
     , mTestSHA256("mbedTLS SHA256", 100, "Testing")
+    , mTestPKCS5("mbedTLS PKCS5", 100, "Testing")
     , mPoolSize("Entropy Pool", 100)
     , mPoolContent()
     , mItems({{ mTestAES,
                 mTestSHA256,
+                mTestPKCS5,
                 mPoolSize,
                 mPoolContent
                 }})
@@ -80,6 +85,13 @@ void CryptoScreen::screenInit()
         
         mTestSHA256.value = ((result == 0) ? "Pass" : "Fail");
         mTestSHA256.invalidateWidget();
+    }
+
+    {
+        auto result(static_cast<int>(mbedtls_pkcs5_self_test(0)));
+        
+        mTestPKCS5.value = ((result == 0) ? "Pass" : "Fail");
+        mTestPKCS5.invalidateWidget();
     }
 }
 

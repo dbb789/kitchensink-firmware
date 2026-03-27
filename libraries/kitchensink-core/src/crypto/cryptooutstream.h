@@ -17,15 +17,15 @@ class CryptoOutStream : public OutStream
 public:
     enum class State
     {
+        kInternalError = -1,
         kWriting       = 0,
-        kEncryptFailed = 1,
-        kHmacFailed    = 2,
         kFlushed       = 3
     };
 
 public:
     CryptoOutStream(OutStream&         outStream,
                     const StrRef&      password,
+                    const StrRef&      suffix,
                     const Crypto::IV&  iv,
                     const Crypto::IV&  dataIv,
                     const Crypto::Key& dataKey);
@@ -45,6 +45,7 @@ private:
 private:
     OutStream&                                 mOutStream;
     StrRef                                     mPassword;
+    StrRef                                     mSuffix;
     Crypto::IV                                 mIv;
     Crypto::IV                                 mDataIv;
     Crypto::Key                                mDataKey;
