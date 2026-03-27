@@ -107,6 +107,70 @@ bool stretch(const StrRef&     password,
     return true;
 }
 
+bool pbkdf2HmacSha512(const StrRef&     password,
+                      const StrRef&     suffix,
+                      const Crypto::IV& salt,
+                      uint32_t          iterations,
+                      Crypto::Key&      key)
+{
+    initializeLibrary();
+
+    key.fill(0);
+
+    // Concatenate password + suffix as raw bytes (UTF-8/ASCII).
+    std::array<uint8_t, Config::kPasswordMax> pwdBytes;
+    std::size_t pwdLen(0);
+
+    for (std::size_t i = 0; i < password.length() && pwdLen < Config::kPasswordMax; ++i)
+    {
+        pwdBytes[pwdLen++] = uint8_t(password[i]);
+    }
+
+    for (std::size_t i = 0; i < suffix.length() && pwdLen < Config::kPasswordMax; ++i)
+    {
+        pwdBytes[pwdLen++] = uint8_t(suffix[i]);
+    }
+
+    psa_key_derivation_operation_t op = PSA_KEY_DERIVATION_OPERATION_INIT;
+
+    if (psa_key_derivation_setup(&op, PSA_ALG_PBKDF2_HMAC(PSA_ALG_SHA_512)) != PSA_SUCCESS)
+    {
+        return false;
+    }
+
+    if (psa_key_derivation_input_integer(&op, PSA_KEY_DERIVATION_INPUT_COST, iterations) != PSA_SUCCESS)
+    {
+        psa_key_derivation_abort(&op);
+        return false;
+    }
+
+    if (psa_key_derivation_input_bytes(&op, PSA_KEY_DERIVATION_INPUT_SALT, salt.data(), salt.size()) != PSA_SUCCESS)
+    {
+        psa_key_derivation_abort(&op);
+        return false;
+    }
+
+    if (psa_key_derivation_input_bytes(&op,
+                                       PSA_KEY_DERIVATION_INPUT_PASSWORD,
+                                       pwdBytes.data(),
+                                       pwdLen) != PSA_SUCCESS)
+    {
+        psa_key_derivation_abort(&op);
+        return false;
+    }
+
+    if (psa_key_derivation_output_bytes(&op, key.data(), key.size()) != PSA_SUCCESS)
+    {
+        psa_key_derivation_abort(&op);
+        key.fill(0);
+        return false;
+    }
+
+    psa_key_derivation_abort(&op);
+
+    return true;
+}
+
 bool encrypt(const Crypto::Key& key,
              const Crypto::IV&  iv,
              std::size_t        size,

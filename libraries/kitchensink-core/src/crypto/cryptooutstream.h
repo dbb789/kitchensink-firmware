@@ -4,6 +4,7 @@
 #include "crypto/cryptoutil.h"
 #include "crypto/cryptotypes.h"
 #include "crypto/hmaccontext.h"
+#include "config.h"
 #include "types/circularstream.h"
 #include "types/outstream.h"
 #include "types/strbuf.h"
@@ -28,7 +29,8 @@ public:
                     const StrRef&      suffix,
                     const Crypto::IV&  iv,
                     const Crypto::IV&  dataIv,
-                    const Crypto::Key& dataKey);
+                    const Crypto::Key& dataKey,
+                    uint32_t           kdfIterations = Config::kKdfIterations);
 
 public:
     virtual ~CryptoOutStream();
@@ -39,7 +41,7 @@ public:
     State state() const;
 
 private:
-    void writeHeader();
+    void writeHeader(uint32_t kdfIterations);
     void flush();
 
 private:

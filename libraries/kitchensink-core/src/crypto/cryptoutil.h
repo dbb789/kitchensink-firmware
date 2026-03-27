@@ -23,6 +23,12 @@ bool stretch(const StrRef&     password,
              const Crypto::IV& iv,
              Crypto::Key&      digest);
 
+bool pbkdf2HmacSha512(const StrRef&     password,
+                      const StrRef&     suffix,
+                      const Crypto::IV& salt,
+                      uint32_t          iterations,
+                      Crypto::Key&      key);
+
 bool encrypt(const Crypto::Key& key,
              const Crypto::IV&  iv,
              std::size_t        size,

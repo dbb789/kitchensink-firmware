@@ -43,6 +43,7 @@ constexpr int         kEntropySourceFactor = 2;
 constexpr std::size_t kEntropyPoolSize     = 200;
 constexpr std::size_t kPasswordMin         = 1;
 constexpr std::size_t kPasswordMax         = 48;
+constexpr uint32_t    kKdfIterations       = 10000;
 
 #ifndef KS_PASSWORD_SUFFIX
 #error "A password suffix must be configured to build this library. Please read PASSWORD_SUFFIX.md for more information."
