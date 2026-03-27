@@ -1,31 +1,12 @@
 #include "crypto/cryptooutstream.h"
 #include "crypto/cryptotypes.h"
-#include "crypto/cryptoutil.h"
+#include "fileoutstream.h"
 #include "types/dataref.h"
-#include "types/outstream.h"
 
 #include <cstdio>
 #include <cstring>
 #include <string>
 #include <unistd.h>
-
-// Simple OutStream wrapping a stdio FILE for writing encrypted output.
-class FileOutStream : public OutStream
-{
-public:
-    explicit FileOutStream(FILE* file)
-        : mFile(file)
-    { }
-
-public:
-    std::size_t write(const DataRef& data) override
-    {
-        return fwrite(data.begin(), 1, data.end() - data.begin(), mFile);
-    }
-
-private:
-    FILE* mFile;
-};
 
 static bool randomFill(uint8_t* buf, std::size_t len)
 {
@@ -85,10 +66,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    CryptoUtil::initializeLibrary();
-
     int exitCode = 0;
-
     {
         FileOutStream    fileOut(outFile);
         CryptoOutStream  cryptOut(fileOut, StrRef(password), StrRef(""), iv, dataIv, dataKey);

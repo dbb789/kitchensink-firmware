@@ -44,12 +44,18 @@ aesencrypt.o: aesencrypt.cpp
 aesdecrypt.o: aesdecrypt.cpp
 	$(CPP) $(CPP_FLAGS) -o $@ -c $<
 
-aesencrypt: aesencrypt.o libkitchensink.a
+fileinstream.o: fileinstream.cpp
+	$(CPP) $(CPP_FLAGS) -o $@ -c $<
+
+fileoutstream.o: fileoutstream.cpp
+	$(CPP) $(CPP_FLAGS) -o $@ -c $<
+
+aesencrypt: aesencrypt.o fileoutstream.o libkitchensink.a
 	$(CPP) -o $@ $^
 
-aesdecrypt: aesdecrypt.o libkitchensink.a
+aesdecrypt: aesdecrypt.o fileinstream.o fileoutstream.o libkitchensink.a
 	$(CPP) -o $@ $^
 
 clean:
-	rm -f $(TARGETS) aesencrypt.o aesdecrypt.o libkitchensink.a
+	rm -f $(TARGETS) aesencrypt.o aesdecrypt.o fileinstream.o fileoutstream.o libkitchensink.a
 	rm -rf $(BUILDDIR)

@@ -1,56 +1,12 @@
 #include "crypto/cryptoinstream.h"
-#include "crypto/cryptoutil.h"
+#include "fileinstream.h"
+#include "fileoutstream.h"
 #include "types/dataref.h"
-#include "types/instream.h"
-#include "types/outstream.h"
 
 #include <cstdio>
 #include <cstring>
 #include <string>
 #include <unistd.h>
-
-// Simple InStream wrapping a stdio FILE for reading encrypted input.
-class FileInStream : public InStream
-{
-public:
-    explicit FileInStream(FILE* file)
-        : mFile(file)
-    { }
-
-public:
-    std::size_t read(OutStream& os, std::size_t len) override
-    {
-        uint8_t     buf[4096];
-        std::size_t toRead = len < sizeof(buf) ? len : sizeof(buf);
-        std::size_t n      = fread(buf, 1, toRead, mFile);
-        if (n == 0)
-        {
-            return 0;
-        }
-        return os.write(DataRef(buf, buf + n));
-    }
-
-private:
-    FILE* mFile;
-};
-
-// Simple OutStream wrapping a stdio FILE for writing plaintext output.
-class FileOutStream : public OutStream
-{
-public:
-    explicit FileOutStream(FILE* file)
-        : mFile(file)
-    { }
-
-public:
-    std::size_t write(const DataRef& data) override
-    {
-        return fwrite(data.begin(), 1, data.end() - data.begin(), mFile);
-    }
-
-private:
-    FILE* mFile;
-};
 
 static std::string stripSuffix(const std::string& path, const std::string& suffix)
 {
@@ -101,8 +57,6 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Cannot create output file: %s\n", outputPath.c_str());
         return 1;
     }
-
-    CryptoUtil::initializeLibrary();
 
     FileInStream   fileIn(inFile);
     FileOutStream  fileOut(outFile);
