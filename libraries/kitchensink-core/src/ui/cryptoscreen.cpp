@@ -68,7 +68,7 @@ bool CryptoScreen::processEvent(const Event& event)
         return true;
     }
 
-    return false;
+    return mHStackWidget.processEvent(event);
 }
 
 void CryptoScreen::screenInit()
