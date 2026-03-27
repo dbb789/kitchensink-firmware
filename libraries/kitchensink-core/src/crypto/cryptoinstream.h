@@ -1,6 +1,7 @@
 #ifndef INCLUDED_CRYPTOINSTREAM_H
 #define INCLUDED_CRYPTOINSTREAM_H
 
+#include "crypto/aesdecryptcontext.h"
 #include "crypto/cryptotypes.h"
 #include "crypto/cryptoutil.h"
 #include "crypto/hmaccontext.h"
@@ -50,8 +51,7 @@ private:
     InStream&                                 mInStream;
     StrRef                                    mPassword;
     StrRef                                    mSuffix;
-    Crypto::Key                               mDataKey;
-    Crypto::IV                                mDataIv;
+    AESDecryptContext                         mDecryptContext;
     HMACContext                               mHMAC;
     CircularStream<Crypto::kAesBlockSize * 8> mInBuffer;
     CircularStream<Crypto::kAesBlockSize * 8> mOutBuffer;

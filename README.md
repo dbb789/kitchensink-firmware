@@ -61,7 +61,9 @@ on-device UI.
 
 A separate bank of password-protected macros, encrypted at rest using
 AES with HMAC-SHA256 authentication. This is stored on an SD card in
-the format used by AES Crypt - https://www.aescrypt.com/
+the v3 format used by AES Crypt - https://www.aescrypt.com/
+
+This project is of course completely unaffiliated with AES Crypt.
 
 The encryption key is derived from a user password combined with
 entropy harvested from keystroke timing, so the device never needs an

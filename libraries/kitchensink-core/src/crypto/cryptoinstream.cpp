@@ -1,5 +1,6 @@
 #include "crypto/cryptoinstream.h"
 
+#include "crypto/aesdecryptcontext.h"
 #include "crypto/cryptotypes.h"
 #include "crypto/cryptoutil.h"
 #include "types/arrayutil.h"
@@ -58,7 +59,7 @@ void CryptoInStream::readHeader()
         return;
     }
     
-    if (out.data() != uint8_t('\x02'))
+    if (out.data() != uint8_t('\x03'))
     {
         mState = State::kBadVersion;
         return;
@@ -102,7 +103,25 @@ void CryptoInStream::readHeader()
             return;
         }
     } while (extLen != 0);
-    
+
+    // KDF iteration count (v3)
+
+    uint32_t kdfIterations(0);
+
+    {
+        out.reset();
+        if (mInStream.read(out, 4) != 4)
+        {
+            mState = State::kTruncated;
+            return;
+        }
+
+        kdfIterations = (uint32_t(out.data()[0]) << 24 |
+                         uint32_t(out.data()[1]) << 16 |
+                         uint32_t(out.data()[2]) << 8  |
+                         uint32_t(out.data()[3]));
+    }
+
     // IV
     
     Crypto::IV iv;
@@ -148,17 +167,22 @@ void CryptoInStream::readHeader()
     // Verify HMAC
     Crypto::Key key;
     
-    if (!CryptoUtil::stretch(mPassword, mSuffix, iv, key))
+    if (!CryptoUtil::pbkdf2HmacSha512(mPassword, mSuffix, iv, kdfIterations, key))
     {
         mState = State::kInternalError;
         return;
     }
 
+    // HMAC input is the encrypted IV+Key followed by the version byte 0x03.
+    std::array<uint8_t, Crypto::kAesBlockSize + Crypto::kAesKeyLen + 1> dataIvKeyWithVersion;
+    std::copy(dataIvKeyCrypt.begin(), dataIvKeyCrypt.end(), dataIvKeyWithVersion.begin());
+    dataIvKeyWithVersion[Crypto::kAesBlockSize + Crypto::kAesKeyLen] = 0x03;
+
     Crypto::HMAC expectedDataIvKeyHmac;
 
     if (!HMACContext::generate(key,
-                               DataRef(dataIvKeyCrypt.begin(),
-                                       dataIvKeyCrypt.end()),
+                               DataRef(dataIvKeyWithVersion.begin(),
+                                       dataIvKeyWithVersion.end()),
                                expectedDataIvKeyHmac))
     {
         mState = State::kInternalError;
@@ -173,21 +197,24 @@ void CryptoInStream::readHeader()
     
     std::array<uint8_t, Crypto::kAesBlockSize + Crypto::kAesKeyLen> dataIvKey;
 
-    Crypto::IV nextIv;
-    
-    if (!CryptoUtil::decrypt(key,
-                             iv,
-                             dataIvKeyCrypt,
-                             dataIvKey,
-                             nextIv))
     {
-        mState = State::kCorrupted;
-        return;
-    }
-    
-    ArrayUtil<decltype(dataIvKey)>::split(dataIvKey, mDataIv, mDataKey);
+        AESDecryptContext headerDecrypt;
 
-    if (!mHMAC.init(mDataKey))
+        if (!headerDecrypt.init(key, iv) ||
+            !headerDecrypt.update(dataIvKeyCrypt, dataIvKey) ||
+            !headerDecrypt.finish())
+        {
+            mState = State::kCorrupted;
+            return;
+        }
+    }
+
+    Crypto::IV  dataIv;
+    Crypto::Key dataKey;
+
+    ArrayUtil<decltype(dataIvKey)>::split(dataIvKey, dataIv, dataKey);
+
+    if (!mDecryptContext.init(dataKey, dataIv, true) || !mHMAC.init(dataKey))
     {
         mState = State::kInternalError;
         return;
@@ -196,7 +223,7 @@ void CryptoInStream::readHeader()
 
 bool CryptoInStream::readBlock()
 {
-    static constexpr size_t SuffixLen = 33;
+    static constexpr size_t SuffixLen = 32;
     
     // Buffer underflow - this shouldn't happen.
     if (mInBuffer.size() < Crypto::kAesBlockSize)
@@ -206,16 +233,19 @@ bool CryptoInStream::readBlock()
         return false;
     }
 
-    // Stop reading blocks until output buffer has been consumed.
-    if (mOutBuffer.remaining() < Crypto::kAesBlockSize)
+    // Stop reading blocks until there is room for worst-case output:
+    // 16 bytes from update() + 15 bytes from finish() on the last block.
+    if (mOutBuffer.remaining() < Crypto::kAesBlockSize * 2)
     {
         return false;
     }
 
-    // Now decrypt a single block.
+    // Decrypt a single block.
     
     std::array<uint8_t, Crypto::kAesBlockSize> inBlock;
-    std::array<uint8_t, Crypto::kAesBlockSize> outBlock;
+    // PSA CBC_PKCS7 decryption holds back the previous block, so the second
+    // and subsequent update() calls may produce up to 2 blocks of output.
+    std::array<uint8_t, Crypto::kAesBlockSize * 2> outBlock;
     ArrayOutStream inBlockStream(inBlock);
     
     mInBuffer.read(inBlockStream, Crypto::kAesBlockSize);
@@ -225,19 +255,23 @@ bool CryptoInStream::readBlock()
         mState = State::kInternalError;
         return false;
     }
-    
-    if (!CryptoUtil::decrypt(mDataKey,
-                             mDataIv,
-                             Crypto::kAesBlockSize,
-                             inBlock.begin(),
-                             outBlock.begin(),
-                             mDataIv))
+
+    // PSA CBC_PKCS7 decryption holds back one block, so update() may return
+    // 0 bytes on the first call, and 16 bytes on each subsequent call.
+    std::size_t outLen = 0;
+
+    if (!mDecryptContext.update(inBlock,
+                                outBlock,
+                                outLen))
     {
         mState = State::kCorrupted;
         return false;
     }
-    
-    auto blockSize(Crypto::kAesBlockSize);
+
+    if (outLen > 0)
+    {
+        mOutBuffer.write(DataRef(outBlock.begin(), outBlock.begin() + outLen));
+    }
 
     bool readMore = true;
 
@@ -250,20 +284,25 @@ bool CryptoInStream::readBlock()
         
         mInBuffer.read(suffixStream, suffix.size());
 
-        if (suffix[0] > Crypto::kAesBlockSize)
+        // PSA validates PKCS#7 and strips padding. Returns PSA_ERROR_INVALID_PADDING
+        // on bad padding, which finish() translates to kCorrupted.
+        std::size_t finalLen = 0;
+
+        if (!mDecryptContext.finish(outBlock, finalLen))
         {
             mState = State::kCorrupted;
             return false;
         }
-        
-        auto cipherTextTrailing(Crypto::kAesBlockSize - suffix[0]);
-        
-        blockSize = Crypto::kAesBlockSize - (cipherTextTrailing % Crypto::kAesBlockSize);
-            
+
+        if (finalLen > 0)
+        {
+            mOutBuffer.write(DataRef(outBlock.begin(), outBlock.begin() + finalLen));
+        }
+
         Crypto::HMAC dataHmac;
             
-        std::copy(suffix.begin() + 1,
-                  suffix.begin() + SuffixLen,
+        std::copy(suffix.begin(),
+                  suffix.end(),
                   dataHmac.begin());
 
         Crypto::HMAC expectedHmac;
@@ -285,10 +324,6 @@ bool CryptoInStream::readBlock()
         
         readMore = false;
     }
-
-    auto blockData(DataRef(outBlock.begin(), outBlock.begin() + blockSize));
-    
-    mOutBuffer.write(blockData);
 
     return readMore;
 }

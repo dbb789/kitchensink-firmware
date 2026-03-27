@@ -110,6 +110,8 @@ bool HMACContext::finish(Crypto::HMAC& hmac)
 
     mState = State::kFinished;
 
+    psa_destroy_key(mKeyId);
+
     return true;
 }
 

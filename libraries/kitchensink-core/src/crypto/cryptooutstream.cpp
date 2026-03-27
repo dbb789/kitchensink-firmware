@@ -1,5 +1,6 @@
 #include "crypto/cryptooutstream.h"
 
+#include "crypto/aesencryptcontext.h"
 #include "types/arrayutil.h"
 #include "types/stroutstream.h"
 #include "config.h"
@@ -9,23 +10,17 @@ CryptoOutStream::CryptoOutStream(OutStream&         outStream,
                                  const StrRef&      suffix,
                                  const Crypto::IV&  iv,
                                  const Crypto::IV&  dataIv,
-                                 const Crypto::Key& dataKey)
+                                 const Crypto::Key& dataKey,
+                                 uint32_t           kdfIterations)
     : mOutStream(outStream)
     , mPassword(password)
     , mSuffix(suffix)
     , mIv(iv)
-    , mDataIv(dataIv)
-    , mDataKey(dataKey)
     , mData()
     , mDataOut(mData)
     , mState(State::kWriting)
 {
-    writeHeader();
-
-    if (mState == State::kWriting && !mHMAC.init(mDataKey))
-    {
-        mState = State::kInternalError;
-    }
+    writeHeader(dataIv, dataKey, kdfIterations);
 }
 
 CryptoOutStream::~CryptoOutStream()
@@ -33,38 +28,46 @@ CryptoOutStream::~CryptoOutStream()
     flush();
 }
 
-void CryptoOutStream::writeHeader()
+void CryptoOutStream::writeHeader(const Crypto::IV&  dataIv,
+                                  const Crypto::Key& dataKey,
+                                  uint32_t           kdfIterations)
 {
     Crypto::Key key;
     
-    if (!CryptoUtil::stretch(mPassword, mSuffix, mIv, key))
+    if (!CryptoUtil::pbkdf2HmacSha512(mPassword, mSuffix, mIv, kdfIterations, key))
     {
         mState = State::kInternalError;
         return;
     }
 
-    std::array<uint8_t, sizeof(mDataIv) + sizeof(mDataKey)> dataIvKey;
+    std::array<uint8_t, sizeof(dataIv) + sizeof(dataKey)> dataIvKey;
 
-    ArrayUtil<decltype(dataIvKey)>::join(mDataIv, mDataKey, dataIvKey);
+    ArrayUtil<decltype(dataIvKey)>::join(dataIv, dataKey, dataIvKey);
     
-    std::array<uint8_t, sizeof(mDataIv) + sizeof(mDataKey)> dataIvKeyCrypt;
+    std::array<uint8_t, sizeof(dataIv) + sizeof(dataKey)> dataIvKeyCrypt;
 
-    Crypto::IV nextIv;
-    if (!CryptoUtil::encrypt(key,
-                             mIv,
-                             dataIvKey,
-                             dataIvKeyCrypt,
-                             nextIv))
     {
-        mState = State::kInternalError;
-        return;
+        AESEncryptContext headerEncrypt;
+
+        if (!headerEncrypt.init(key, mIv) ||
+            !headerEncrypt.update(dataIvKey, dataIvKeyCrypt) ||
+            !headerEncrypt.finish())
+        {
+            mState = State::kInternalError;
+            return;
+        }
     }
+
+    // HMAC input is the encrypted IV+Key followed by the version byte 0x03.
+    std::array<uint8_t, sizeof(dataIv) + sizeof(dataKey) + 1> dataIvKeyWithVersion;
+    std::copy(dataIvKeyCrypt.begin(), dataIvKeyCrypt.end(), dataIvKeyWithVersion.begin());
+    dataIvKeyWithVersion[sizeof(dataIv) + sizeof(dataKey)] = 0x03;
 
     Crypto::HMAC dataIvKeyHmac;
     
     if (!HMACContext::generate(key,
-                               DataRef(dataIvKeyCrypt.begin(),
-                                       dataIvKeyCrypt.end()),
+                               DataRef(dataIvKeyWithVersion.begin(),
+                                       dataIvKeyWithVersion.end()),
                                dataIvKeyHmac))
     {
         mState = State::kInternalError;
@@ -72,7 +75,7 @@ void CryptoOutStream::writeHeader()
     }
     
     mOutStream.write("AES");
-    mOutStream.write(uint8_t('\x02'));
+    mOutStream.write(uint8_t('\x03'));
     mOutStream.write(uint8_t('\x00'));
 
     StrRef createdBy("CREATED_BY");
@@ -86,10 +89,20 @@ void CryptoOutStream::writeHeader()
 
     mOutStream.write(uint8_t('\x00'));
     mOutStream.write(uint8_t('\x00'));
-    
+
+    mOutStream.write(uint8_t((kdfIterations >> 24) & 0xFF));
+    mOutStream.write(uint8_t((kdfIterations >> 16) & 0xFF));
+    mOutStream.write(uint8_t((kdfIterations >>  8) & 0xFF));
+    mOutStream.write(uint8_t( kdfIterations        & 0xFF));
+
     mOutStream.write(mIv);
     mOutStream.write(dataIvKeyCrypt);
     mOutStream.write(dataIvKeyHmac);
+
+    if (!mEncryptContext.init(dataKey, dataIv, true) || !mHMAC.init(dataKey))
+    {
+        mState = State::kInternalError;
+    }
 }
 
 std::size_t CryptoOutStream::write(const DataRef& data)
@@ -108,19 +121,17 @@ std::size_t CryptoOutStream::write(const DataRef& data)
         if (mDataOut.remaining() == 0)
         {
             std::array<uint8_t, Crypto::kAesBlockSize> cryptData;
-            
-            if (!CryptoUtil::encrypt(mDataKey,
-                                     mDataIv,
-                                     Crypto::kAesBlockSize,
-                                     mData.begin(),
-                                     cryptData.begin(),
-                                     mDataIv))
+            std::size_t cryptLen = 0;
+
+            if (!mEncryptContext.update(mData,
+                                        cryptData,
+                                        cryptLen))
             {
                 mState = State::kInternalError;
                 return 0;
             }
             
-            auto cryptDataRef(DataRef(cryptData.begin(), cryptData.end()));
+            auto cryptDataRef(DataRef(cryptData.begin(), cryptData.begin() + cryptLen));
             
             if (!mHMAC.update(cryptDataRef))
             {
@@ -145,36 +156,43 @@ void CryptoOutStream::flush()
         return;
     }
 
-    auto blockOffset(mDataOut.position() % Crypto::kAesBlockSize);
+    // Pass any partial plaintext to PSA so it can be included in the PKCS#7 padding block.
+    auto filledBytes(mDataOut.position());
 
-    if (mDataOut.position() > 0)
+    if (filledBytes > 0)
     {
-        std::array<uint8_t, Crypto::kAesBlockSize> cryptData;
-        
-        if (!CryptoUtil::encrypt(mDataKey,
-                                 mDataIv,
-                                 Crypto::kAesBlockSize,
-                                 mData.begin(),
-                                 cryptData.begin(),
-                                 mDataIv))
+        std::array<uint8_t, Crypto::kAesBlockSize> unused;
+        std::size_t unusedLen = 0;
+
+        if (!mEncryptContext.update(mData,
+                                    filledBytes,
+                                    unused,
+                                    unusedLen))
         {
             mState = State::kInternalError;
             return;
         }
-
-        auto cryptDataRef(DataRef(cryptData.begin(), cryptData.end()));
-
-        if (!mHMAC.update(cryptDataRef))
-        {
-            mState = State::kInternalError;
-            return;
-        }
-        mOutStream.write(cryptDataRef);
-        
-        mDataOut.reset();
     }
-    
-    mOutStream.write(uint8_t(blockOffset));
+
+    // PSA adds PKCS#7 padding and outputs the final encrypted block.
+    std::array<uint8_t, Crypto::kAesBlockSize * 2> cryptData;
+    std::size_t cryptLen = 0;
+
+    if (!mEncryptContext.finish(cryptData, cryptLen))
+    {
+        mState = State::kInternalError;
+        return;
+    }
+
+    auto cryptDataRef(DataRef(cryptData.begin(), cryptData.begin() + cryptLen));
+
+    if (!mHMAC.update(cryptDataRef))
+    {
+        mState = State::kInternalError;
+        return;
+    }
+
+    mOutStream.write(cryptDataRef);
 
     Crypto::HMAC hmac;
 
@@ -183,7 +201,7 @@ void CryptoOutStream::flush()
         mState = State::kInternalError;
         return;
     }
-    
+
     mOutStream.write(hmac);
 
     mState = State::kFlushed;

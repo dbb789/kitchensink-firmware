@@ -53,17 +53,35 @@ TEST(CryptoUtil, SHA256_2)
               DataRef(expectedHash.data(), expectedHash.data() + expectedHash.size()));
 }
 
-TEST(CryptoUtil, Stretch)
+
+TEST(CryptoUtil, PBKDF2_PasswordTooLong)
 {
-    Crypto::IV iv;
-    TestUtil::hexToArray("0123456789abcdef0123456789abcdef", iv);
-    
+    // password + suffix must not exceed Config::kPasswordMax (128 bytes)
+    const std::string longPassword(120, 'a');
+    const std::string longSuffix(9, 'b');   // 120 + 9 = 129 — one over the limit
+
+    Crypto::IV  salt = {};
     Crypto::Key key;
-    
-    ASSERT_TRUE(CryptoUtil::stretch("password", "_kitchenSink", iv, key));
 
-    Crypto::Key expectedKey;
-    TestUtil::hexToArray("6bb03448d35a920c91ddd8ebd328051289207382168e5c784827c12bfeae9414", expectedKey);
+    ASSERT_FALSE(CryptoUtil::pbkdf2HmacSha512(StrRef(longPassword.c_str()),
+                                              StrRef(longSuffix.c_str()),
+                                              salt,
+                                              1,
+                                              key));
+}
 
-    ASSERT_EQ(key, expectedKey);
+TEST(CryptoUtil, PBKDF2_PasswordAtLimit)
+{
+    // Exactly at the limit (128 bytes) should succeed
+    const std::string password(120, 'a');
+    const std::string suffix(8, 'b');   // 120 + 8 = 128
+
+    Crypto::IV  salt = {};
+    Crypto::Key key;
+
+    ASSERT_TRUE(CryptoUtil::pbkdf2HmacSha512(StrRef(password.c_str()),
+                                             StrRef(suffix.c_str()),
+                                             salt,
+                                             1,
+                                             key));
 }

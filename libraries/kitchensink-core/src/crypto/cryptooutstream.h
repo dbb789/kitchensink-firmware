@@ -1,9 +1,11 @@
 #ifndef INCLUDED_CRYPTOOUTSTREAM_H
 #define INCLUDED_CRYPTOOUTSTREAM_H
 
+#include "crypto/aesencryptcontext.h"
 #include "crypto/cryptoutil.h"
 #include "crypto/cryptotypes.h"
 #include "crypto/hmaccontext.h"
+#include "config.h"
 #include "types/circularstream.h"
 #include "types/outstream.h"
 #include "types/strbuf.h"
@@ -28,7 +30,8 @@ public:
                     const StrRef&      suffix,
                     const Crypto::IV&  iv,
                     const Crypto::IV&  dataIv,
-                    const Crypto::Key& dataKey);
+                    const Crypto::Key& dataKey,
+                    uint32_t           kdfIterations = Config::kKdfIterations);
 
 public:
     virtual ~CryptoOutStream();
@@ -39,7 +42,7 @@ public:
     State state() const;
 
 private:
-    void writeHeader();
+    void writeHeader(const Crypto::IV& dataIv, const Crypto::Key& dataKey, uint32_t kdfIterations);
     void flush();
 
 private:
@@ -47,8 +50,7 @@ private:
     StrRef                                     mPassword;
     StrRef                                     mSuffix;
     Crypto::IV                                 mIv;
-    Crypto::IV                                 mDataIv;
-    Crypto::Key                                mDataKey;
+    AESEncryptContext                          mEncryptContext;
     HMACContext                                mHMAC;
     std::array<uint8_t, Crypto::kAesBlockSize> mData;
     ArrayOutStream                             mDataOut;
