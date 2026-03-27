@@ -93,5 +93,11 @@ int main(int argc, char* argv[])
         return 1;
     }
 
+    if (ferror(outFile))
+    {
+        fprintf(stderr, "Error writing output file\n");
+        return 1;
+    }
+
     return 0;
 }
