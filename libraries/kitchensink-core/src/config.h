@@ -42,7 +42,7 @@ constexpr std::size_t kLayerCount   = 10;
 constexpr int         kEntropySourceFactor = 2;
 constexpr std::size_t kEntropyPoolSize     = 200;
 constexpr std::size_t kPasswordMin         = 1;
-constexpr std::size_t kPasswordMax         = 48;
+constexpr std::size_t kPasswordMax         = 128;
 constexpr uint32_t    kKdfIterations       = 10000;
 
 #ifndef KS_PASSWORD_SUFFIX

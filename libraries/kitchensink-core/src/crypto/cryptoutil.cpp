@@ -75,15 +75,20 @@ bool pbkdf2HmacSha512(const StrRef&     password,
     key.fill(0);
 
     // Concatenate password + suffix as raw bytes (UTF-8/ASCII).
+    if (password.length() + suffix.length() > Config::kPasswordMax)
+    {
+        return false;
+    }
+
     std::array<uint8_t, Config::kPasswordMax> pwdBytes;
     std::size_t pwdLen(0);
 
-    for (std::size_t i = 0; i < password.length() && pwdLen < Config::kPasswordMax; ++i)
+    for (std::size_t i = 0; i < password.length(); ++i)
     {
         pwdBytes[pwdLen++] = uint8_t(password[i]);
     }
 
-    for (std::size_t i = 0; i < suffix.length() && pwdLen < Config::kPasswordMax; ++i)
+    for (std::size_t i = 0; i < suffix.length(); ++i)
     {
         pwdBytes[pwdLen++] = uint8_t(suffix[i]);
     }

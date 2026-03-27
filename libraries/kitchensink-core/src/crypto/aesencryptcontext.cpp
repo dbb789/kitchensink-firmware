@@ -103,7 +103,10 @@ bool AESEncryptContext::finish(uint8_t*     out,
     if (psa_cipher_finish(&mOperation, out, maxOut, &outLen) != PSA_SUCCESS)
     {
         mState = State::kInternalError;
+        psa_cipher_abort(&mOperation);
+        mOperation = PSA_CIPHER_OPERATION_INIT;
         psa_destroy_key(mKeyId);
+        mKeyId = MBEDTLS_SVC_KEY_ID_INIT;
         return false;
     }
 

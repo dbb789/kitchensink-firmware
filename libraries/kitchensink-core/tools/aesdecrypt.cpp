@@ -67,6 +67,13 @@ int main(int argc, char* argv[])
         cryptIn.read(fileOut, 4096);
     }
 
+    if (ferror(outFile))
+    {
+        fprintf(stderr, "Error writing output file\n");
+        remove(outputPath.c_str());
+        return 1;
+    }
+
     fclose(inFile);
     fclose(outFile);
 

@@ -53,3 +53,35 @@ TEST(CryptoUtil, SHA256_2)
               DataRef(expectedHash.data(), expectedHash.data() + expectedHash.size()));
 }
 
+
+TEST(CryptoUtil, PBKDF2_PasswordTooLong)
+{
+    // password + suffix must not exceed Config::kPasswordMax (128 bytes)
+    const std::string longPassword(120, 'a');
+    const std::string longSuffix(9, 'b');   // 120 + 9 = 129 — one over the limit
+
+    Crypto::IV  salt = {};
+    Crypto::Key key;
+
+    ASSERT_FALSE(CryptoUtil::pbkdf2HmacSha512(StrRef(longPassword.c_str()),
+                                              StrRef(longSuffix.c_str()),
+                                              salt,
+                                              1,
+                                              key));
+}
+
+TEST(CryptoUtil, PBKDF2_PasswordAtLimit)
+{
+    // Exactly at the limit (128 bytes) should succeed
+    const std::string password(120, 'a');
+    const std::string suffix(8, 'b');   // 120 + 8 = 128
+
+    Crypto::IV  salt = {};
+    Crypto::Key key;
+
+    ASSERT_TRUE(CryptoUtil::pbkdf2HmacSha512(StrRef(password.c_str()),
+                                             StrRef(suffix.c_str()),
+                                             salt,
+                                             1,
+                                             key));
+}

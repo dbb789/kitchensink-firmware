@@ -66,40 +66,32 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    int exitCode = 0;
+    FileOutStream    fileOut(outFile);
+    CryptoOutStream  cryptOut(fileOut, StrRef(password), StrRef(""), iv, dataIv, dataKey);
+
+    if (cryptOut.state() != CryptoOutStream::State::kWriting)
     {
-        FileOutStream    fileOut(outFile);
-        CryptoOutStream  cryptOut(fileOut, StrRef(password), StrRef(""), iv, dataIv, dataKey);
-
-        uint8_t    buf[4096];
-        std::size_t n;
-
-        while ((n = fread(buf, 1, sizeof(buf), inFile)) > 0)
-        {
-            if (cryptOut.write(DataRef(buf, buf + n)) != n)
-            {
-                fprintf(stderr, "Encryption error\n");
-                exitCode = 1;
-                break;
-            }
-        }
-
-        if (exitCode == 0 && ferror(inFile))
-        {
-            fprintf(stderr, "Error reading input file\n");
-            exitCode = 1;
-        }
-
-        // CryptoOutStream destructor flushes and finalises the encrypted stream.
+        fprintf(stderr, "Encryption initialization failed\n");
+        return 1;
     }
 
-    fclose(inFile);
-    fclose(outFile);
+    uint8_t     buf[4096];
+    std::size_t n;
 
-    if (exitCode != 0)
+    while ((n = fread(buf, 1, sizeof(buf), inFile)) > 0)
     {
-        remove(outputPath.c_str());
+        if (cryptOut.write(DataRef(buf, buf + n)) != n)
+        {
+            fprintf(stderr, "Encryption error\n");
+            return 1;
+        }
     }
 
-    return exitCode;
+    if (ferror(inFile))
+    {
+        fprintf(stderr, "Error reading input file\n");
+        return 1;
+    }
+
+    return 0;
 }
