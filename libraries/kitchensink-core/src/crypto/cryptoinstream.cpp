@@ -282,6 +282,15 @@ bool CryptoInStream::readBlock()
             return false;
         }
 
+        for (std::size_t i = Crypto::kAesBlockSize - padLen; i < Crypto::kAesBlockSize; ++i)
+        {
+            if (outBlock[i] != padLen)
+            {
+                mState = State::kCorrupted;
+                return false;
+            }
+        }
+
         blockSize = Crypto::kAesBlockSize - padLen;
 
         Crypto::HMAC dataHmac;

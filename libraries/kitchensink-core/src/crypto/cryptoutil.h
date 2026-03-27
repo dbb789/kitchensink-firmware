@@ -18,11 +18,6 @@ bool sha256(const uint8_t*  begin,
             const uint8_t*  end,
             Crypto::SHA256& hash);
 
-bool stretch(const StrRef&     password,
-             const StrRef&     suffix,
-             const Crypto::IV& iv,
-             Crypto::Key&      digest);
-
 bool pbkdf2HmacSha512(const StrRef&     password,
                       const StrRef&     suffix,
                       const Crypto::IV& salt,

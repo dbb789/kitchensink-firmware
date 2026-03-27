@@ -53,17 +53,3 @@ TEST(CryptoUtil, SHA256_2)
               DataRef(expectedHash.data(), expectedHash.data() + expectedHash.size()));
 }
 
-TEST(CryptoUtil, Stretch)
-{
-    Crypto::IV iv;
-    TestUtil::hexToArray("0123456789abcdef0123456789abcdef", iv);
-    
-    Crypto::Key key;
-    
-    ASSERT_TRUE(CryptoUtil::stretch("password", "_kitchenSink", iv, key));
-
-    Crypto::Key expectedKey;
-    TestUtil::hexToArray("6bb03448d35a920c91ddd8ebd328051289207382168e5c784827c12bfeae9414", expectedKey);
-
-    ASSERT_EQ(key, expectedKey);
-}
