@@ -8,3 +8,8 @@ libraries/kitchensink-core/tests/tests
 ks_password_suffix.txt
 libraries/kitchensink-core/tools/aesencrypt
 libraries/kitchensink-core/tools/aesdecrypt
+
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
+Makefile
