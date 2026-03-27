@@ -7,6 +7,9 @@ INCLUDES = -I. -I../src -I$(ARDUINO_LIBRARIES)/libraries/kitchensink-tf-psa-cryp
 C_FLAGS = -g -Wall $(INCLUDES)
 CPP_FLAGS = -g -std=gnu++14 -Wall -fsanitize=address -DKS_PASSWORD_SUFFIX=\"_kitchenSink\" $(INCLUDES)
 LD_FLAGS = -fsanitize=address
+
+BUILDDIR = build
+
 #C_FILES = $(wildcard $(ARDUINO_LIBRARIES)/libraries/kitchensink-mbedtls/src/*.c)
 C_FILES = $(wildcard $(ARDUINO_LIBRARIES)/libraries/kitchensink-tf-psa-crypto/src/*.c)
 CPP_FILES = $(wildcard */*.cpp) $(wildcard ../src/types/*.cpp) $(wildcard ../src/crypto/*.cpp) \
@@ -16,33 +19,39 @@ CPP_FILES = $(wildcard */*.cpp) $(wildcard ../src/types/*.cpp) $(wildcard ../src
             $(wildcard ../src/log/*.cpp) \
             $(wildcard ../src/hardware/*.cpp) \
             $(wildcard ../src/timer/*.cpp)
-O_FILES = $(C_FILES:.c=.o) $(CPP_FILES:.cpp=.o)
+O_FILES = $(patsubst %.c,$(BUILDDIR)/%.o,$(C_FILES)) \
+          $(patsubst %.cpp,$(BUILDDIR)/%.o,$(CPP_FILES))
 TARGET = tests
 GTEST_DIR = /usr/src/gtest
 GTEST_SRCS = $(GTEST_DIR)/src/*.cc
 
 all: $(TARGET)
 
-%.o: %.c
+$(BUILDDIR)/%.o: %.c
+	@mkdir -p $(dir $@)
 	$(CC) $(C_FLAGS) -o $@ -c $<
 
-%.o: %.cpp
+$(BUILDDIR)/%.o: %.cpp
+	@mkdir -p $(dir $@)
 	$(CPP) $(CPP_FLAGS) -o $@ -c $<
 
-gtest-all.o: $(GTEST_SRCS)
-	$(CPP) $(CPP_FLAGS) -I$(GTEST_DIR) -c $(GTEST_DIR)/src/gtest-all.cc
+$(BUILDDIR)/gtest-all.o: $(GTEST_SRCS)
+	@mkdir -p $(BUILDDIR)
+	$(CPP) $(CPP_FLAGS) -I$(GTEST_DIR) -c $(GTEST_DIR)/src/gtest-all.cc -o $@
 
-gtest_main.o: $(GTEST_SRCS)
-	$(CPP) $(CPP_FLAGS) -I$(GTEST_DIR) -c $(GTEST_DIR)/src/gtest_main.cc
+$(BUILDDIR)/gtest_main.o: $(GTEST_SRCS)
+	@mkdir -p $(BUILDDIR)
+	$(CPP) $(CPP_FLAGS) -I$(GTEST_DIR) -c $(GTEST_DIR)/src/gtest_main.cc -o $@
 
-gtest.a: gtest-all.o
+gtest.a: $(BUILDDIR)/gtest-all.o
 	$(AR) $(ARFLAGS) $@ $^
 
-gtest_main.a: gtest-all.o gtest_main.o
+gtest_main.a: $(BUILDDIR)/gtest-all.o $(BUILDDIR)/gtest_main.o
 	$(AR) $(ARFLAGS) $@ $^
 
 $(TARGET): $(O_FILES) gtest_main.a
 	$(CPP) -o $(TARGET) $(LD_FLAGS) $(O_FILES) gtest_main.a -lpthread
 
 clean:
-	rm -f $(TARGET) $(O_FILES) gtest.a gtest_main.a *.o
+	rm -f $(TARGET) gtest.a gtest_main.a
+	rm -rf $(BUILDDIR)

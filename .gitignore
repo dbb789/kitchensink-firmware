@@ -6,3 +6,5 @@ doxygen/*
 .dir-locals.el
 libraries/kitchensink-core/tests/tests
 ks_password_suffix.txt
+libraries/kitchensink-core/tools/aesencrypt
+libraries/kitchensink-core/tools/aesdecrypt
