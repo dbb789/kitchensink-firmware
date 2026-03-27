@@ -123,10 +123,8 @@ std::size_t CryptoOutStream::write(const DataRef& data)
             std::array<uint8_t, Crypto::kAesBlockSize> cryptData;
             std::size_t cryptLen = 0;
 
-            if (!mEncryptContext.update(mData.begin(),
-                                        Crypto::kAesBlockSize,
-                                        cryptData.begin(),
-                                        Crypto::kAesBlockSize,
+            if (!mEncryptContext.update(mData,
+                                        cryptData,
                                         cryptLen))
             {
                 mState = State::kInternalError;
@@ -166,10 +164,9 @@ void CryptoOutStream::flush()
         std::array<uint8_t, Crypto::kAesBlockSize> unused;
         std::size_t unusedLen = 0;
 
-        if (!mEncryptContext.update(mData.begin(),
+        if (!mEncryptContext.update(mData,
                                     filledBytes,
-                                    unused.begin(),
-                                    unused.size(),
+                                    unused,
                                     unusedLen))
         {
             mState = State::kInternalError;
@@ -181,7 +178,7 @@ void CryptoOutStream::flush()
     std::array<uint8_t, Crypto::kAesBlockSize * 2> cryptData;
     std::size_t cryptLen = 0;
 
-    if (!mEncryptContext.finish(cryptData.begin(), cryptData.size(), cryptLen))
+    if (!mEncryptContext.finish(cryptData, cryptLen))
     {
         mState = State::kInternalError;
         return;

@@ -27,24 +27,39 @@ public:
     bool init(const Crypto::Key& key,
               const Crypto::IV&  iv,
               bool               pkcs7 = false);
-    bool update(const uint8_t* in,
-                std::size_t    inLen,
-                uint8_t*       out,
-                std::size_t    outBufLen,
-                std::size_t&   outLen);
-    bool finish();
-    bool finish(uint8_t*     out,
-                std::size_t  maxOut,
-                std::size_t& outLen);
 
 public:
     template <std::size_t Capacity>
     bool update(const std::array<uint8_t, Capacity>& in,
                 std::array<uint8_t, Capacity>&       out);
+    
+    template <std::size_t Capacity>
+    bool update(const std::array<uint8_t, Capacity>& in,
+                std::array<uint8_t, Capacity>&       out,
+                std::size_t&                         outLen);
+    
+    template <std::size_t Capacity>
+    bool update(const std::array<uint8_t, Capacity>& in,
+                std::size_t                          inLen,
+                std::array<uint8_t, Capacity>&       out,
+                std::size_t&                         outLen);
 
     template <std::size_t Capacity>
     bool finish(std::array<uint8_t, Capacity>& out,
                 std::size_t&                   outLen);
+    
+    bool finish();
+
+private:
+    bool update(const uint8_t* in,
+                std::size_t    inLen,
+                uint8_t*       out,
+                std::size_t    outBufLen,
+                std::size_t&   outLen);
+
+    bool finish(uint8_t*     out,
+                std::size_t  maxOut,
+                std::size_t& outLen);
 
 private:
     State                  mState;
@@ -56,13 +71,38 @@ private:
     AESEncryptContext& operator=(const AESEncryptContext&) = delete;
 };
 
+
 template <std::size_t Capacity>
 inline
 bool AESEncryptContext::update(const std::array<uint8_t, Capacity>& in,
                                std::array<uint8_t, Capacity>&       out)
 {
     std::size_t outLen = 0;
-    return update(in.begin(), Capacity, out.begin(), Capacity, outLen);
+    
+    return update<Capacity>(in, out, outLen);
+}
+
+template <std::size_t Capacity>
+inline
+bool AESEncryptContext::update(const std::array<uint8_t, Capacity>& in,
+                               std::array<uint8_t, Capacity>&       out,
+                               std::size_t&                         outLen)
+{
+    return update<Capacity>(in, Capacity, out, outLen);
+}
+
+template <std::size_t Capacity>
+bool AESEncryptContext::update(const std::array<uint8_t, Capacity>& in,
+                               std::size_t                          inLen,
+                               std::array<uint8_t, Capacity>&       out,
+                               std::size_t&                         outLen)
+{
+    if (inLen > Capacity)
+    {
+        return false;
+    }
+    
+    return update(in.begin(), inLen, out.begin(), Capacity, outLen);
 }
 
 template <std::size_t Capacity>
