@@ -23,7 +23,7 @@ Think of it like a safe that needs two keys at once. You hold one key (your pass
 
 ## How it works under the hood
 
-When you unlock the device, the firmware combines your password with the suffix and runs the result through 8,192 rounds of SHA-256 hashing to produce the final encryption key. This key is then used with AES-256 to encrypt and decrypt your stored data. The HMAC signature on each file means the firmware can also detect if data has been tampered with or corrupted.
+When you unlock the device, the firmware combines your password with the suffix and runs the result through 10,000 iterations of PBKDF2-HMAC-SHA-512 to produce the final encryption key. This key is then used with AES-256 to encrypt and decrypt your stored data. The HMAC signature on each file means the firmware can also detect if data has been tampered with or corrupted.
 
 You don't need to understand any of that — just know that the suffix is a critical part of the key, and without it your data is unreadable.
 
