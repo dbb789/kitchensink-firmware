@@ -70,16 +70,22 @@ uint16_t I2CKeyMatrix::scan(uint16_t& rowMask)
     Wire.beginTransmission(mAddr);
     Wire.write(MCP23017::GPIOA);
     Wire.endTransmission();
-    Wire.requestFrom(mAddr, (uint8_t)1);
 
-    uint16_t row((~Wire.read()) & 0xff);
+    uint16_t row = 0;
+
+    if (Wire.requestFrom(mAddr, (uint8_t)1) == 1)
+    {
+        row = (~Wire.read()) & 0xff;
+    }
 
     Wire.beginTransmission(mAddr);
     Wire.write(MCP23017::GPIOB);
     Wire.endTransmission();
-    Wire.requestFrom(mAddr, (uint8_t)1);
-        
-    row |= (((~Wire.read()) & 0xff) << 8);
+
+    if (Wire.requestFrom(mAddr, (uint8_t)1) == 1)
+    {
+        row |= ((~Wire.read()) & 0xff) << 8;
+    }
     row &= mColMask;
 
     rowMask &= ~rowBit;
