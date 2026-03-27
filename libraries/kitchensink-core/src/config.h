@@ -11,6 +11,7 @@ namespace Config
 
 constexpr std::size_t kTimerCount = 10;
 
+constexpr uint32_t kDebounceLatencyMs = 7;
 constexpr std::size_t kHomeLedCount = 12;
 
 constexpr std::size_t kLayerNameLen = 24;

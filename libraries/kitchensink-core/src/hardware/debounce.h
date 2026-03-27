@@ -3,12 +3,11 @@
 
 #include <cstdint>
 
+#include "config.h"
+
 template <typename KeyMask>
 class Debounce
 {
-private:
-    static constexpr uint32_t kLatencyMs = 7;
-    
 public:
     constexpr Debounce();
 
@@ -46,7 +45,7 @@ bool Debounce<KeyMask>::process(uint32_t       timeMs,
 {
     mCurrent &= next;
     
-    if ((timeMs - mLastMs) >= kLatencyMs)
+    if ((timeMs - mLastMs) >= Config::kDebounceLatencyMs)
     {
         delta = state;
         delta ^= mCurrent;
