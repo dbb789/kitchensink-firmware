@@ -1,7 +1,7 @@
 #include "screenmanager.h"
 
-#include "autorepeat.h"
 #include "keyboardstate.h"
+#include "ui/autorepeat.h"
 #include "ui/menudefinitions.h"
 #include "ui/hsplitwidget.h"
 #include "ui/titlewidget.h"

@@ -1,7 +1,7 @@
 #include "ui/combowidget.h"
 
-#include "autorepeat.h"
 #include "types/strref.h"
+#include "ui/autorepeat.h"
 #include "ui/keys.h"
 #include "ui/rectangle.h"
 #include "ui/renderutil.h"
