@@ -50,9 +50,9 @@ Represents a HID key press or release.
 
 | Field  | Description |
 |--------|-------------|
-| `name` | Named key code (e.g. `KC_A`, `KC_ENTER`) — or `_<n>` for an unnamed key by numeric index |
+| `name` | Named key code (e.g. `A`, `ENTER`) — or `_<n>` for an unnamed key by numeric index |
 
-**Examples:** `KKC_A`, `KKC_ENTER`, `K_42`
+**Examples:** `KA`, `KENTER`, `K_42`
 
 ---
 
@@ -126,7 +126,7 @@ Triggers a smart key action by ID.
 |------------|-----------------|
 | `A2`       | `Action 2` |
 | `D100`     | `Delay 100` |
-| `KKC_A`    | `KC_A` |
+| `KA`       | `KC_A` |
 | `L1`       | `Layer 1` |
 | `MD3`      | `Macro 3` |
 | `MS1`      | `Secure Macro 1` |
