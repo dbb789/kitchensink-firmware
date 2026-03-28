@@ -27,6 +27,11 @@ void EntryWidget::setFocused(bool focused)
 {
     mFocused = focused;
     mFlash = focused;
+
+    if (mFocused)
+    {
+        mUITimers.reset();
+    }
 }
 
 void EntryWidget::render(const RasterLine& rasterLine, int row)
