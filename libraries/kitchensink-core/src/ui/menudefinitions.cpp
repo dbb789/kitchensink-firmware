@@ -57,6 +57,16 @@ const std::array<MenuWidget::Item, 6> eventMenu = { {
         { StrRef("Smart Keys"),    StrRef(), ScreenEvent::create(ScreenEvent::Type::kMenu, MenuDefinitions::kSmartKeys) }
     } };
 
+StrRef menuItemName(StrRef name)
+{
+    if (name == "")
+    {
+        return "<Unassigned>";
+    }
+
+    return name;
+}
+
 MenuWidget::Item createKeyMenuItem(std::size_t index)
 {
     MenuWidget::Item item;
@@ -88,7 +98,7 @@ MenuWidget::Item createLayerMenuItem(const Layer& layer, std::size_t index)
 {
     MenuWidget::Item item;
         
-    item.title = layer.name;
+    item.title = menuItemName(layer.name);
     item.event = LayerEvent::create(index);
         
     return item;
@@ -98,7 +108,7 @@ MenuWidget::Item createMacroMenuItem(const Macro& macro, std::size_t index)
 {
     MenuWidget::Item item;
         
-    item.title    = macro.name;
+    item.title    = menuItemName(macro.name);
     item.shortcut = macro.shortcut;
     item.event    = MacroEvent::create(MacroEvent::Type::kDefault, index);
         
@@ -109,7 +119,7 @@ MenuWidget::Item createSMacroMenuItem(const Macro& macro, std::size_t index)
 {
     MenuWidget::Item item;
         
-    item.title    = macro.name;
+    item.title    = menuItemName(macro.name);
     item.shortcut = macro.shortcut;
     item.event    = MacroEvent::create(MacroEvent::Type::kSecure, index);
         
@@ -120,7 +130,7 @@ MenuWidget::Item createMultiKeyMenuItem(const MultiKey& multi, std::size_t index
 {
     MenuWidget::Item item;
         
-    item.title = multi.name;
+    item.title = menuItemName(multi.name);
     item.event = MultiEvent::create(index);
 
     return item;
@@ -130,7 +140,7 @@ MenuWidget::Item createSmartKeyMenuItem(const SmartKey& smart, std::size_t index
 {
     MenuWidget::Item item;
         
-    item.title = smart.name;
+    item.title = menuItemName(smart.name);
     item.event = SmartEvent::create(index);
         
     return item;
@@ -140,7 +150,7 @@ MenuWidget::Item createEditLayerMenuItem(const Layer& layer, std::size_t index)
 {
     MenuWidget::Item item;
         
-    item.title = layer.name;
+    item.title = menuItemName(layer.name);
     item.event = ScreenEvent::create(ScreenEvent::Type::kEditLayer, index);
         
     return item;
@@ -150,7 +160,7 @@ MenuWidget::Item createEditMacroMenuItem(const Macro& macro, std::size_t index)
 {
     MenuWidget::Item item;
         
-    item.title    = macro.name;
+    item.title    = menuItemName(macro.name);
     item.shortcut = macro.shortcut;
     item.event    = ScreenEvent::create(ScreenEvent::Type::kEditMacro, index);
         
@@ -161,7 +171,7 @@ MenuWidget::Item createEditSMacroMenuItem(const Macro& macro, std::size_t index)
 {
     MenuWidget::Item item;
         
-    item.title    = macro.name;
+    item.title    = menuItemName(macro.name);
     item.shortcut = macro.shortcut;
     item.event    = ScreenEvent::create(ScreenEvent::Type::kEditSMacro, index);
         
@@ -172,7 +182,7 @@ MenuWidget::Item createEditMultiKeyMenuItem(const MultiKey& multi, std::size_t i
 {
     MenuWidget::Item item;
         
-    item.title = multi.name;
+    item.title = menuItemName(multi.name);
     item.event = ScreenEvent::create(ScreenEvent::Type::kEditMulti, index);
 
     return item;
@@ -182,7 +192,7 @@ MenuWidget::Item createEditSmartKeyMenuItem(const SmartKey& smart, std::size_t i
 {
     MenuWidget::Item item;
         
-    item.title = smart.name;
+    item.title = menuItemName(smart.name);
     item.event = ScreenEvent::create(ScreenEvent::Type::kEditSmart, index);
         
     return item;
