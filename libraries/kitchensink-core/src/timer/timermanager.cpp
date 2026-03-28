@@ -1,13 +1,19 @@
 #include "timer/timermanager.h"
+#include "timer/timerutil.h"
 #include "types/range.h"
 #include "event/event.h"
 #include "hardware/cpuutil.h"
 
 #include <algorithm>
 
+TimerManager::TimerManager()
+    : mNowMsHigh(0)
+    , mLastNowMs(0)
+{ }
+
 void TimerManager::pollEvent(EventStage& next)
 {
-    auto timeMs(CpuUtil::nowMs());
+    auto timeMs(nowMs64());
     
     if (!mTimerQueue.empty())
     {
@@ -88,7 +94,7 @@ void TimerManager::scheduleRepeating(const Timer& timer,
     
     auto& timerEntry(mTimerMap[tickId]);
 
-    auto timeMs(delayMs + CpuUtil::nowMs());
+    auto timeMs(delayMs + nowMs64());
             
     timerEntry.currentMs     = timeMs;
     timerEntry.repeatDelayMs = repeatDelayMs;
@@ -145,3 +151,9 @@ std::size_t TimerManager::activeTimers() const
 {
     return mTimerQueue.size();
 }
+
+TimeMs64 TimerManager::nowMs64()
+{
+    return TimerUtil::toMs64(CpuUtil::nowMs(), mNowMsHigh, mLastNowMs);
+}
+

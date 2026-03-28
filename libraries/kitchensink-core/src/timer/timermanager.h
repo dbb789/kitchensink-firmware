@@ -7,6 +7,8 @@
 #include "event/eventstage.h"
 #include "types/orderedcircularbuffer.h"
 #include "timer/timer.h"
+#include "timer/timertypes.h"
+#include "timer/timerutil.h"
 #include "config.h"
 
 #include <cstdint>
@@ -20,7 +22,7 @@ private:
         Entry();
         
     public:
-        uint32_t currentMs;
+        TimeMs64 currentMs;
         uint32_t repeatDelayMs;
         bool     assigned;
 
@@ -30,11 +32,11 @@ private:
     };
 
 private:
-    typedef OrderedCircularBuffer<uint32_t, uint16_t, Config::kTimerCount> TimerQueue;
+    typedef OrderedCircularBuffer<TimeMs64, uint16_t, Config::kTimerCount> TimerQueue;
     typedef std::array<Entry, Config::kTimerCount>                         TimerMap;
     
 public:
-    TimerManager() = default;
+    TimerManager();
     
 public:
     virtual void pollEvent(EventStage& next) override;
@@ -55,11 +57,16 @@ public:
     std::size_t allocatedTimers() const;
 
     std::size_t activeTimers() const;
+    
+private:
+    TimeMs64 nowMs64();
 
 private:
     TimerMap   mTimerMap;
     TimerQueue mTimerQueue;
-    
+    uint32_t   mNowMsHigh;
+    uint32_t   mLastNowMs;
+
 private:
     TimerManager(const TimerManager&) = delete;
     TimerManager& operator=(const TimerManager&) = delete;
