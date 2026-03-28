@@ -40,6 +40,12 @@ bool HomeLedWidget::processEvent(const Event& inEvent)
 
         return true;
     }
+    else if Keys::okReleased(event))
+    {
+        // Explicitly consume this event so that we don't move down the list in
+        // a parent HStackWidget.
+        return true;
+    }
     else if (Keys::cancel(inEvent) && mTrigger)
     {
         mTrigger = false;

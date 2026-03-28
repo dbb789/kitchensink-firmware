@@ -29,7 +29,7 @@ public:
 
 private:
     const SmartKeySet& mSmartKeySet;
-    Timer      mFlashTimer;
+    Timer              mFlashTimer;
     bool               mFocused;
     bool               mFlash;
     bool               mTrigger;
