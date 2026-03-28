@@ -65,8 +65,8 @@ void PasswordEntryWidget::PasswordContent::updateMask()
 }
 
 
-PasswordEntryWidget::PasswordEntryWidget(TimerManager& timer)
-    : mEntryWidget(timer, &password)
+PasswordEntryWidget::PasswordEntryWidget(UITimers& uiTimers)
+    : mEntryWidget(uiTimers, &password)
 { }
 
 PasswordEntryWidget::PasswordEntryWidget(PasswordEntryWidget&& rhs)

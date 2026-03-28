@@ -4,9 +4,11 @@
 #include "ui/menudefinitions.h"
 #include "ui/screen.h"
 #include "ui/surface.h"
+#include "ui/uitimers.h"
 #include "event/screenevent.h"
 #include "event/eventstage.h"
 #include "types/circularbuffer.h"
+#include "timer/timer.h"
 
 class Display;
 class EntropyPool;
@@ -79,6 +81,7 @@ private:
     EntropyPool&                    mEntropyPool;
     MenuDefinitions                 mMenuDefinitions;
     CircularBuffer<ScreenEvent, 12> mScreenEventQueue;
+    UITimers                        mUITimers;
 
 private:
     ScreenManager(const ScreenManager&) = delete;

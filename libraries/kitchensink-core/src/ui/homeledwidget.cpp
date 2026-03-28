@@ -9,19 +9,17 @@
 #include "event/smartevent.h"
 
 HomeLedWidget::HomeLedWidget(const SmartKeySet& smartKeySet,
-                             TimerManager&             timer)
+                             UITimers&          uiTimers)
     : mSmartKeySet(smartKeySet)
-    , mFlashTimer(timer.createTimer())
+    , mUITimers(uiTimers)
     , mFocused(true)
     , mFlash(true)
     , mTrigger(false)
-{
-    mFlashTimer.scheduleRepeating(250, 250);
-}
+{ }
 
 bool HomeLedWidget::processEvent(const Event& inEvent)
 {
-    if (mFlashTimer.matches(inEvent))
+    if (mUITimers.flashTimer().matches(inEvent))
     {
         mFlash = !mFlash;
         invalidateWidget();
@@ -40,7 +38,7 @@ bool HomeLedWidget::processEvent(const Event& inEvent)
 
         return true;
     }
-    else if Keys::okReleased(event))
+    else if (Keys::okReleased(inEvent))
     {
         // Explicitly consume this event so that we don't move down the list in
         // a parent HStackWidget.
@@ -122,7 +120,12 @@ void HomeLedWidget::render(const RasterLine& rasterLine,
     auto fg(mFocused ? Colors::kFocused : Colors::kUnfocused);
     auto bg(Colors::kBlack);
 
-    if (mFocused && mTrigger && mFlash)
+    // if (mFocused && mTrigger && mFlash)
+    // {
+    //     std::swap(fg, bg);
+    // }
+    
+    if (mFlash)
     {
         std::swap(fg, bg);
     }

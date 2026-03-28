@@ -8,16 +8,16 @@
 
 
 GlobalConfigScreen::GlobalConfigScreen(const SmartKeySet& smartKeySet,
+                                       UITimers&          uiTimers,
                                        GlobalConfig&      globalConfig,
-                                       TimerManager&             timer,
                                        EventStage&        next)
     : mGlobalConfig(globalConfig)
-    , mTapDelayEntry("Multi Tap Delay", 140, NumberEntryWidget(0, 9999, timer))
-    , mMacroPlaybackEntry("Macro Playback Delay", 140, NumberEntryWidget(0, 999, timer))
-    , mRepeatDelayEntry("Key Repeat Delay", 140, NumberEntryWidget(0, 9999, timer))
-    , mRepeatRateEntry("Key Repeat Rate", 140, NumberEntryWidget(0, 9999, timer))
-    , mHomeScreenColumns("Home Screen Columns", 140, NumberEntryWidget(1, 9, timer))
-    , mHomeScreenTimeout("Home Screen Timeout", 140, NumberEntryWidget(0, 999999, timer))
+    , mTapDelayEntry("Multi Tap Delay", 140, NumberEntryWidget(0, 9999, uiTimers))
+    , mMacroPlaybackEntry("Macro Playback Delay", 140, NumberEntryWidget(0, 999, uiTimers))
+    , mRepeatDelayEntry("Key Repeat Delay", 140, NumberEntryWidget(0, 9999, uiTimers))
+    , mRepeatRateEntry("Key Repeat Rate", 140, NumberEntryWidget(0, 9999, uiTimers))
+    , mHomeScreenColumns("Home Screen Columns", 140, NumberEntryWidget(1, 9, uiTimers))
+    , mHomeScreenTimeout("Home Screen Timeout", 140, NumberEntryWidget(0, 999999, uiTimers))
     , mHomeScreenLeds(ArrayUtil<HomeLedWidgets>::createArray([&](std::size_t index)
                       {
                           StrBuf<24> name;
@@ -27,7 +27,7 @@ GlobalConfigScreen::GlobalConfigScreen(const SmartKeySet& smartKeySet,
                           out.appendInt(index + 1);
                           
                           return LabelledWidget<HomeLedWidget>(name, 140, HomeLedWidget(smartKeySet,
-                                                                                        timer));
+                                                                                        uiTimers));
                       }))
     , mItems({{ mTapDelayEntry,
                 mMacroPlaybackEntry,

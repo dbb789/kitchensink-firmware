@@ -18,14 +18,14 @@ ArrayObjectSource<ComboWidget::Item> stds(typeCombo.begin(), typeCombo.end());
 
 }
 
-SmartConfigScreen::SmartConfigScreen(TimerManager&      timer,
+SmartConfigScreen::SmartConfigScreen(UITimers&   uiTimers,
                                      SmartKey&   smartKey,
                                      EventStage& next)
     : mSmartKey(smartKey)
-    , mTitleEntry("Name", 70, TextEntryWidget(timer))
+    , mTitleEntry("Name", 70, TextEntryWidget(uiTimers))
     , mTypeCombo("Type", 70, ComboWidget(stds))
-    , mEventEntry("Key", 70, EventEntryWidget(timer))
-    , mAuxEventEntry("Aux Key", 70, EventEntryWidget(timer))
+    , mEventEntry("Key", 70, EventEntryWidget(uiTimers))
+    , mAuxEventEntry("Aux Key", 70, EventEntryWidget(uiTimers))
     , mItems({{ mTitleEntry,
                 mTypeCombo,
                 mEventEntry,

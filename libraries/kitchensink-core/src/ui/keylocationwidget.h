@@ -1,11 +1,11 @@
 #ifndef INCLUDED_KEYLOCATIONWIDGET_H
 #define INCLUDED_KEYLOCATIONWIDGET_H
 
-#include "ui/widget.h"
 #include "ui/action.h"
+#include "ui/widget.h"
+#include "ui/uitimers.h"
 #include "types/strbuf.h"
 #include "keylocation.h"
-#include "timer/timermanager.h"
 
 class KeyHardware;
 class Timer;
@@ -13,8 +13,7 @@ class Timer;
 class KeyLocationWidget : public Widget
 {
 public:
-    KeyLocationWidget(TimerManager& timerManager,
-                      KeyHardware&  keyHardware);
+    KeyLocationWidget(KeyHardware&  keyHardware);
 
 public:
     virtual bool processEvent(const Event& inEvent) override;

@@ -4,11 +4,11 @@
 #include "types/arrayutil.h"
 #include "types/stroutstream.h"
 
-MultiConfigScreen::MultiConfigScreen(TimerManager&      timer,
+MultiConfigScreen::MultiConfigScreen(UITimers&   uiTimers,
                                      MultiKey&   multiKey,
                                      EventStage& next)
     : mMultiKey(multiKey)
-    , mTitleEntry("Name", 70, TextEntryWidget(timer))
+    , mTitleEntry("Name", 70, TextEntryWidget(uiTimers))
     , mEventEntry(ArrayUtil<EventEntryWidgets>::createArray([&](std::size_t index)
                   {
                       StrBuf<24> name;
@@ -17,7 +17,7 @@ MultiConfigScreen::MultiConfigScreen(TimerManager&      timer,
                       out.appendStr("Tap ");
                       out.appendInt(index + 1);
                       
-                      return LabelledWidget<EventEntryWidget>(name, 140, EventEntryWidget(timer));
+                      return LabelledWidget<EventEntryWidget>(name, 140, EventEntryWidget(uiTimers));
                   }))
     , mItems({{ mTitleEntry }})
     , mHStackWidget(mItems, true)

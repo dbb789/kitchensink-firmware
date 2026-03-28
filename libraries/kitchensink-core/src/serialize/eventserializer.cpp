@@ -192,7 +192,7 @@ void deserialize(const StrRef& eventStr, Event& event)
     {
         auto keyCodeStr(eventStr.substr(1));
 
-        if (!keyCodeStr.empty() && keyCodeStr[0] == '_')
+        if (keyCodeStr.length() > 1 && keyCodeStr[0] == '_')
         {
             int index(0);
 

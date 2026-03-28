@@ -4,6 +4,7 @@
 #include "timer/timermanager.h"
 #include "ui/widget.h"
 #include "ui/action.h"
+#include "ui/uitimers.h"
 #include "types/strbuf.h"
 #include "homeled.h"
 
@@ -11,7 +12,7 @@ class HomeLedWidget : public Widget
 {
 public:
     HomeLedWidget(const SmartKeySet& smartKeySet,
-                  TimerManager&             timer);
+                  UITimers&          uiTimers);
 
     HomeLedWidget(HomeLedWidget&&) = default;
 
@@ -29,7 +30,7 @@ public:
 
 private:
     const SmartKeySet& mSmartKeySet;
-    Timer              mFlashTimer;
+    UITimers&          mUITimers;
     bool               mFocused;
     bool               mFlash;
     bool               mTrigger;

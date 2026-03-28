@@ -2,6 +2,7 @@
 #define INCLUDED_PASSWORDENTRYWIDGET_H
 
 #include "ui/entrywidget.h"
+#include "ui/uitimers.h"
 
 class Event;
 class Timer;
@@ -35,7 +36,7 @@ public:
     };
     
 public:
-    explicit PasswordEntryWidget(TimerManager& timer);
+    explicit PasswordEntryWidget(UITimers& uiTimers);
 
     PasswordEntryWidget(PasswordEntryWidget&& rhs);
     

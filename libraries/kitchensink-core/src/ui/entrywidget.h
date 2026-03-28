@@ -1,12 +1,13 @@
 #ifndef INCLUDED_ENTRYWIDGET_H
 #define INCLUDED_ENTRYWIDGET_H
 
-#include "timer/timermanager.h"
+#include "timer/timer.h"
 #include "event/eventstage.h"
 #include "types/strbuf.h"
 #include "types/strref.h"
 #include "ui/action.h"
 #include "ui/dimension.h"
+#include "ui/uitimers.h"
 #include "ui/widget.h"
 #include "ui/virtualkeyboard.h"
 #include "ui/widgetcontainer.h"
@@ -32,8 +33,8 @@ public:
     };
     
 public:
-    EntryWidget(TimerManager&   timer,
-                Content* nContent);
+    EntryWidget(UITimers& uiTimers,
+                Content*  nContent);
 
     EntryWidget(EntryWidget&&) = default;
 
@@ -51,7 +52,7 @@ public:
     Content* content;
 
 private:
-    Timer           mFlashTimer;
+    UITimers&       mUITimers;
     bool            mFocused;
     bool            mFlash;
     std::size_t     mCursorPosition;

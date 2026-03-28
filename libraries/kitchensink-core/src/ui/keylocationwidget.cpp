@@ -10,8 +10,7 @@
 #include "hardware/cpuutil.h"
 #include "types/stroutstream.h"
 
-KeyLocationWidget::KeyLocationWidget(TimerManager& timerManager,
-                                     KeyHardware&  keyHardware)
+KeyLocationWidget::KeyLocationWidget(KeyHardware&  keyHardware)
     : mKeyHardware(keyHardware)
     , mLocationStr("Waiting")
     , mFocused(true)

@@ -9,16 +9,16 @@
 #include "ui/labelledwidget.h"
 #include "ui/screen.h"
 #include "ui/textentrywidget.h"
+#include "ui/uitimers.h"
 
 class KeyHardware;
 class Widget;
-class Timer;
 class Layer;
 
 class LayerConfigScreen : public Screen
 {
 public:
-    LayerConfigScreen(TimerManager& timer,
+    LayerConfigScreen(UITimers&     uiTimers,
                       KeyHardware&  keyHardware,
                       Layer&        layer);
 

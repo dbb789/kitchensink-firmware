@@ -1,16 +1,16 @@
 #ifndef INCLUDED_EVENTENTRYWIDGET_H
 #define INCLUDED_EVENTENTRYWIDGET_H
 
-#include "timer/timermanager.h"
 #include "ui/widget.h"
 #include "ui/action.h"
+#include "ui/uitimers.h"
 #include "event/event.h"
 #include "types/strbuf.h"
 
 class EventEntryWidget : public Widget
 {
 public:
-    explicit EventEntryWidget(TimerManager& timer);
+    explicit EventEntryWidget(UITimers& uiTimers);
 
     EventEntryWidget(EventEntryWidget&&) = default;
 
@@ -28,10 +28,10 @@ public:
     Action eventSelected;
 
 private:
-    Timer mFlashTimer;
-    bool          mFocused;
-    bool          mFlash;
-    bool          mTrigger;
+    UITimers& mUITimers;
+    bool      mFocused;
+    bool      mFlash;
+    bool      mTrigger;
 
 private:
     EventEntryWidget(const EventEntryWidget&) = delete;

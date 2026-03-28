@@ -84,6 +84,7 @@ ScreenManager::ScreenManager(Display&       display,
     , mKeyHardware(keyHardware)
     , mEntropyPool(entropyPool)
     , mMenuDefinitions(keyboardState)
+    , mUITimers(timerManager)
 { }
 
 void ScreenManager::poll()
@@ -371,7 +372,7 @@ __attribute__ ((noinline)) void ScreenManager::launchRecordMacroScreen(Macro&   
 __attribute__ ((noinline)) void ScreenManager::launchEditLayerScreen(int                layerId,
                                                                      const ScreenEvent& sourceEvent)
 {
-    LayerConfigScreen screen(mTimerManager,
+    LayerConfigScreen screen(mUITimers,
                              mKeyHardware,
                              mKeyboardState.layerStack[layerId]);
     
@@ -385,7 +386,7 @@ __attribute__ ((noinline)) void ScreenManager::launchEditLayerScreen(int        
 __attribute__ ((noinline)) void ScreenManager::launchEditMultiKeyScreen(int                multiKeyId,
                                                                         const ScreenEvent& sourceEvent)
 {
-    MultiConfigScreen screen(mTimerManager,
+    MultiConfigScreen screen(mUITimers,
                              mKeyboardState.multiKeySet[multiKeyId],
                              mEventManager);
 
@@ -399,7 +400,7 @@ __attribute__ ((noinline)) void ScreenManager::launchEditMultiKeyScreen(int     
 __attribute__ ((noinline)) void ScreenManager::launchEditSmartKeyScreen(int                smartKeyId,
                                                                         const ScreenEvent& sourceEvent)
 {
-    SmartConfigScreen screen(mTimerManager,
+    SmartConfigScreen screen(mUITimers,
                              mKeyboardState.smartKeySet[smartKeyId],
                              mEventManager);
 
@@ -415,7 +416,7 @@ __attribute__ ((noinline)) void ScreenManager::launchEditMacroScreen(Macro&     
                                                                      Event              recordEvent,
                                                                      const ScreenEvent& sourceEvent)
 {
-    EditMacroScreen screen(mTimerManager,
+    EditMacroScreen screen(mUITimers,
                            macro,
                            recordEvent,
                            mEventManager);
@@ -429,8 +430,8 @@ __attribute__ ((noinline)) void ScreenManager::launchEditMacroScreen(Macro&     
 __attribute__ ((noinline)) void ScreenManager::launchGlobalConfigScreen(const ScreenEvent& sourceEvent)
 {
     GlobalConfigScreen screen(mKeyboardState.smartKeySet,
+                              mUITimers,
                               mKeyboardState.globalConfig,
-                              mTimerManager,
                               mEventManager);
 
     displayScreen("Global Settings",
@@ -473,7 +474,7 @@ __attribute__ ((noinline)) void ScreenManager::launchEventStreamScreen(const Scr
 __attribute__ ((noinline)) void ScreenManager::launchMacroUnlockScreen(const ScreenEvent& sourceEvent)
 {
     UnlockScreen screen(mKeyboardState.secureMacroSet,
-                        mTimerManager,
+                        mUITimers,
                         mEventManager);
     
     displayScreen("Unlock Secure Macros",
@@ -495,7 +496,7 @@ __attribute__ ((noinline)) void ScreenManager::launchMacroSaveScreen(const Scree
 __attribute__ ((noinline)) void ScreenManager::launchInitSecureMacroScreen(const ScreenEvent& sourceEvent)
 {
     InitSecureMacroScreen screen(mKeyboardState.secureMacroSet,
-                                 mTimerManager,
+                                 mUITimers,
                                  mEventManager);
     
     displayScreen("Setup Secure Macros",

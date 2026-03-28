@@ -2,6 +2,7 @@
 #define INCLUDED_TEXTENTRYWIDGET_H
 
 #include "ui/entrywidget.h"
+#include "ui/uitimers.h"
 
 class Event;
 class Timer;
@@ -31,7 +32,7 @@ public:
     };
     
 public:
-    explicit TextEntryWidget(TimerManager& timer);
+    explicit TextEntryWidget(UITimers& uiTimers);
 
     TextEntryWidget(TextEntryWidget&& rhs);
     

@@ -25,17 +25,17 @@ constexpr int kLabelWidth = Font::width("Shortcut ");
 
 }
 
-EditMacroScreen::EditMacroScreen(TimerManager&      timer,
+EditMacroScreen::EditMacroScreen(UITimers&   uiTimers,
                                  Macro&      macro,
                                  Event       recordEvent,
                                  EventStage& next)
     : mMacro(macro)
     , mTitleEntry("Name",
                   kLabelWidth,
-                  TextEntryWidget(timer))
+                  TextEntryWidget(uiTimers))
     , mShortcutEntry("Shortcut",
                      kLabelWidth,
-                     TextEntryWidget(timer))
+                     TextEntryWidget(uiTimers))
     , mTypeCombo("Type",
                  kLabelWidth,
                  ComboWidget(mtds))

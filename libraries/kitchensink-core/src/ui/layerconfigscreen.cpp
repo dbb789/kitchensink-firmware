@@ -4,14 +4,14 @@
 #include "event/keyevent.h"
 #include "serialize/eventserializer.h"
 
-LayerConfigScreen::LayerConfigScreen(TimerManager& timer,
-                                     KeyHardware&  keyHardware,
-                                     Layer&        layer)
+LayerConfigScreen::LayerConfigScreen(UITimers&    uiTimers,
+                                     KeyHardware& keyHardware,
+                                     Layer&       layer)
     : mKeyHardware(keyHardware)
     , mLayer(layer)
-    , mTitleEntry("Name", 70, TextEntryWidget(timer))
-    , mKeyLocation("Location", 70, KeyLocationWidget(timer, keyHardware))
-    , mEventEntry("Current", 70, EventEntryWidget(timer))
+    , mTitleEntry("Name", 70, TextEntryWidget(uiTimers))
+    , mKeyLocation("Location", 70, KeyLocationWidget(keyHardware))
+    , mEventEntry("Current", 70, EventEntryWidget(uiTimers))
     , mUpdateButton("Update")
     , mItems({{ mTitleEntry,
                 mKeyLocation,

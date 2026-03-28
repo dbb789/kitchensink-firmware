@@ -8,14 +8,14 @@
 #include "ui/labelledwidget.h"
 #include "ui/screen.h"
 #include "ui/textentrywidget.h"
+#include "ui/uitimers.h"
 
-class Timer;
 class SmartKey;
 
 class SmartConfigScreen : public Screen
 {
 public:
-    SmartConfigScreen(TimerManager&      timer,
+    SmartConfigScreen(UITimers&   uiTimers,
                       SmartKey&   smartKey,
                       EventStage& next);
 
@@ -36,13 +36,3 @@ private:
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-

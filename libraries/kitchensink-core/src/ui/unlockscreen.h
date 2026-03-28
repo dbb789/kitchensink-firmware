@@ -7,6 +7,7 @@
 #include "ui/buttonwidget.h"
 #include "ui/screen.h"
 #include "ui/passwordentrywidget.h"
+#include "ui/uitimers.h"
 #include "macroset.h"
 
 class Timer;
@@ -15,7 +16,7 @@ class UnlockScreen : public Screen
 {
 public:
     UnlockScreen(SecureMacroSet& secureMacroSet,
-                 TimerManager&   timer,
+                 UITimers&       uiTimers,
                  EventStage&     next);
 
 public:

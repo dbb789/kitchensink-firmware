@@ -2,6 +2,7 @@
 #define INCLUDED_NUMBERENTRYWIDGET_H
 
 #include "ui/entrywidget.h"
+#include "ui/uitimers.h"
 
 class Event;
 class Timer;
@@ -37,9 +38,9 @@ public:
     };
     
 public:
-    explicit NumberEntryWidget(int    min,
-                               int    max,
-                               TimerManager& timer);
+    explicit NumberEntryWidget(int       min,
+                               int       max,
+                               UITimers& uiTimers);
 
     NumberEntryWidget(NumberEntryWidget&& rhs);
     

@@ -5,16 +5,16 @@
 #include "config.h"
 
 InitSecureMacroScreen::InitSecureMacroScreen(SecureMacroSet& secureMacroSet,
-                                             TimerManager&   timer,
+                                             UITimers&       uiTimers,
                                              EventStage&     next)
     : mSecureMacroSet(secureMacroSet)
-    , mFlashTimer(timer.createTimer())
+    , mUITimers(uiTimers)
     , mPasswordEntry("Password",
                      60,
-                     PasswordEntryWidget(timer))
+                     PasswordEntryWidget(uiTimers))
     , mConfirmEntry("Confirm",
                     60,
-                    PasswordEntryWidget(timer))
+                    PasswordEntryWidget(uiTimers))
     , mStatusLabel(" Existing data will be erased ", Justify::kCenter)
     , mItems({{ mPasswordEntry,
                 mConfirmEntry,
@@ -22,15 +22,13 @@ InitSecureMacroScreen::InitSecureMacroScreen(SecureMacroSet& secureMacroSet,
     , mHStackWidget(mItems, true)
     , mNext(next)
 {
-    mFlashTimer.scheduleRepeating(250, 250);
-
     mHStackWidget.applied = Action::memFn<InitSecureMacroScreen,
                                           &InitSecureMacroScreen::onApply>(this);
 }
 
 bool InitSecureMacroScreen::processEvent(const Event& event)
 {
-    if (mFlashTimer.matches(event))
+    if (mUITimers.flashTimer().matches(event))
     {
         mStatusLabel.invert = !mStatusLabel.invert;
         mStatusLabel.invalidateWidget();
@@ -52,7 +50,6 @@ void InitSecureMacroScreen::onApply()
 
     if (!passwordA.empty() && !passwordB.empty())
     {
-        mFlashTimer.cancel();
         mStatusLabel.invert = false;
         
         if (passwordA != passwordB)

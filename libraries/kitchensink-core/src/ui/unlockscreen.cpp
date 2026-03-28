@@ -4,12 +4,12 @@
 #include "keyboardstateutil.h"
 
 UnlockScreen::UnlockScreen(SecureMacroSet& secureMacroSet,
-                           TimerManager&   timer,
+                           UITimers&       uiTimers,
                            EventStage&     next)
     : mSecureMacroSet(secureMacroSet)
     , mPasswordEntry("Password",
                      60,
-                     PasswordEntryWidget(timer))
+                     PasswordEntryWidget(uiTimers))
     , mStatusLabel("", Justify::kCenter)
     , mItems({{ mPasswordEntry,
                 HStackWidget::Element(),

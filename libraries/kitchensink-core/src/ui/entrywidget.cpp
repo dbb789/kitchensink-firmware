@@ -14,10 +14,10 @@ namespace
 constexpr int kInitialCursorPosition = 1000;
 }
 
-EntryWidget::EntryWidget(TimerManager&   timer,
-                         Content* nContent)
+EntryWidget::EntryWidget(UITimers& uiTimers,
+                         Content*  nContent)
     : content(nContent)
-    , mFlashTimer(timer.createTimer())
+    , mUITimers(uiTimers)
     , mFocused(true)
     , mFlash(false)
     , mCursorPosition(kInitialCursorPosition)
@@ -27,15 +27,6 @@ void EntryWidget::setFocused(bool focused)
 {
     mFocused = focused;
     mFlash = focused;
-    
-    if (focused)
-    {
-        mFlashTimer.scheduleRepeating(1000, 500);
-    }
-    else
-    {
-        mFlashTimer.cancel();
-    }
 }
 
 void EntryWidget::render(const RasterLine& rasterLine, int row)
@@ -99,7 +90,7 @@ void EntryWidget::render(const RasterLine& rasterLine, int row)
 
 bool EntryWidget::processEvent(const Event& event)
 {
-    if (mFlashTimer.matches(event))
+    if (mUITimers.cursorTimer().matches(event))
     {
         mFlash = !mFlash;
         invalidateWidget();
@@ -109,7 +100,6 @@ bool EntryWidget::processEvent(const Event& event)
     if (event.is<KeyEvent>() && event.get<KeyEvent>().pressed)
     {
         mFlash = true;
-        mFlashTimer.scheduleRepeating(1000, 500);
     }
 
     const auto& text(content->textContent());

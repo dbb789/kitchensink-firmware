@@ -64,11 +64,11 @@ int NumberEntryWidget::NumberContent::normalize()
 }
 
 
-NumberEntryWidget::NumberEntryWidget(int    min,
-                                     int    max,
-                                     TimerManager& timer)
+NumberEntryWidget::NumberEntryWidget(int       min,
+                                     int       max,
+                                     UITimers& uiTimers)
     : value(min, max)
-    , mEntryWidget(timer, &value)
+    , mEntryWidget(uiTimers, &value)
 { }
 
 NumberEntryWidget::NumberEntryWidget(NumberEntryWidget&& rhs)

@@ -6,6 +6,7 @@
 #include "ui/hstackwidget.h"
 #include "ui/labelledwidget.h"
 #include "ui/screen.h"
+#include "ui/uitimers.h"
 #include "ui/textentrywidget.h"
 
 class Timer;
@@ -14,7 +15,7 @@ class MultiKey;
 class MultiConfigScreen : public Screen
 {
 public:
-    MultiConfigScreen(TimerManager&      timer,
+    MultiConfigScreen(UITimers&   uiTimers,
                       MultiKey&   multiKey,
                       EventStage& next);
 

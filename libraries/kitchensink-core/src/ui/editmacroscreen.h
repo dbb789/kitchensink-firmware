@@ -8,9 +8,9 @@
 #include "ui/labelledwidget.h"
 #include "ui/screen.h"
 #include "ui/textentrywidget.h"
+#include "ui/uitimers.h"
 
 class ScreenStack;
-class Timer;
 class Event;
 class Macro;
 class Widget;
@@ -18,7 +18,7 @@ class Widget;
 class EditMacroScreen : public Screen
 {
 public:
-    EditMacroScreen(TimerManager&      timer,
+    EditMacroScreen(UITimers&   uiTimers,
                     Macro&      macro,
                     Event       recordEvent,
                     EventStage& next);

@@ -7,18 +7,16 @@
 #include "serialize/eventserializer.h"
 #include "event/tickevent.h"
 
-EventEntryWidget::EventEntryWidget(TimerManager& timer)
-    : mFlashTimer(timer.createTimer())
+EventEntryWidget::EventEntryWidget(UITimers& uiTimers)
+    : mUITimers(uiTimers)
     , mFocused(true)
     , mFlash(true)
     , mTrigger(false)
-{
-    mFlashTimer.scheduleRepeating(250, 250);
-}
+{ }
 
 bool EventEntryWidget::processEvent(const Event& inEvent)
 {
-    if (mFlashTimer.matches(inEvent))
+    if (mUITimers.flashTimer().matches(inEvent))
     {
         mFlash = !mFlash;
         invalidateWidget();

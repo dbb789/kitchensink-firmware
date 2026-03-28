@@ -40,8 +40,8 @@ void TextEntryWidget::TextContent::operator=(const StrRef& rhs)
 }
 
 
-TextEntryWidget::TextEntryWidget(TimerManager& timer)
-    : mEntryWidget(timer, &text)
+TextEntryWidget::TextEntryWidget(UITimers& uiTimers)
+    : mEntryWidget(uiTimers, &text)
 { }
 
 TextEntryWidget::TextEntryWidget(TextEntryWidget&& rhs)

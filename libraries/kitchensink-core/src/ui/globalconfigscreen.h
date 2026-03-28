@@ -7,6 +7,7 @@
 #include "ui/labelledwidget.h"
 #include "ui/numberentrywidget.h"
 #include "ui/screen.h"
+#include "ui/uitimers.h"
 
 class GlobalConfig;
 class Timer;
@@ -15,8 +16,8 @@ class GlobalConfigScreen : public Screen
 {
 public:
     GlobalConfigScreen(const SmartKeySet& smartKeySet,
+                       UITimers&          uiTimers,
                        GlobalConfig&      globalConfig,
-                       TimerManager&             timer,
                        EventStage&        next);
     
 public:
